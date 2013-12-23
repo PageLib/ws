@@ -52,7 +52,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
     currency = db.Column(db.CHAR(3))
-    type = db.Column(db.String(50))
+    type = db.Column(db.CHAR(50))
 
     __mapper_args__ = {
         'polymorphic_identity': 'transaction',
@@ -74,6 +74,9 @@ class Transaction(db.Model):
 
 
 class Printing(Transaction):
+    """
+    Records the printings of the users.
+    """
     __tablename__ = 'printing'
     id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
     pages_color = db.Column(db.Integer)
@@ -86,10 +89,13 @@ class Printing(Transaction):
 
 
 class Loading_credit_card(Transaction):
+    """
+    Records the loadings operations with the credit card made by the user.
+    """
     __tablename__ = 'loading_credit_card'
 
     id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
-    # On ne sait pas encore ce qu'on aur comme infos ici.
+    # On ne sait pas encore ce qu'on aura comme infos ici.
 
     __mapper_args__ = {
         'polymorphic_identity': 'loading_credit_card',
@@ -97,6 +103,9 @@ class Loading_credit_card(Transaction):
 
 
 class Help_desk(Transaction):
+    """
+    Records the operations made by the help desk.
+    """
     __tablename__ = 'help_desk'
 
     id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
