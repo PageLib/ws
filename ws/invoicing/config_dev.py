@@ -1,1 +1,1 @@
-SQLALCHEMY_DATABASE_URI = 'postgresql+pg8000://scott:tiger@localhost/test'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///test.db'
