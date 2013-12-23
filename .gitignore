@@ -1,1 +1,4 @@
 .idea
+ws/invoicing/app.pyc
+ws/invoicing/config_dev.pyc
+ws/invoicing/model.pyc
