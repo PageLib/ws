@@ -48,11 +48,11 @@ class Transaction(db.Model):
     """
     __tablename__ = 'transaction'
     id = db.Column(db.Integer(), primary_key=True)
-    user = db.Column(db.CHAR(36), nullable=False)
+    user = db.Column(db.String(36), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.CHAR(3))
-    type = db.Column(db.CHAR(50))
+    currency = db.Column(db.String(3))
+    type = db.Column(db.String(50))
 
     __mapper_args__ = {
         'polymorphic_identity': 'transaction',
@@ -78,7 +78,7 @@ class Printing(Transaction):
     Records the printings of the users.
     """
     __tablename__ = 'printing'
-    id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
     pages_color = db.Column(db.Integer)
     pages_grey_level = db.Column(db.Integer)
     copies = db.Column(db.Integer)
@@ -94,7 +94,7 @@ class Loading_credit_card(Transaction):
     """
     __tablename__ = 'loading_credit_card'
 
-    id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
     # On ne sait pas encore ce qu'on aura comme infos ici.
 
     __mapper_args__ = {
@@ -108,7 +108,7 @@ class Help_desk(Transaction):
     """
     __tablename__ = 'help_desk'
 
-    id = db.Column(CHAR(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
 
     __mapper_args__ = {
         'polymorphic_identity': 'help_desk',

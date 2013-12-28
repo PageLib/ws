@@ -5,7 +5,7 @@ from flask import Flask, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.restful import Api
 
-config_obj = os.environ.get("DIAG_CONFIG_MODULE", "config_dev")
+config_obj = os.environ.get("PAGELIB_WS_INVOICING_CONFIG", "config_dev")
 
 app = Flask(__name__)
 app.config.from_object(config_obj)
