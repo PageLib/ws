@@ -81,7 +81,26 @@ def logout_action(session_id):
 
 @app.route('/sessions/<session_id>', methods=['GET'])
 def session_info_action(session_id):
-    pass
+    dbs = DBSession()
+
+    try:
+        # Find the session
+        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        resp_data = {
+            'session_id': session.id,
+            'user_id': session.user_id,
+            'opened': session.opened.isoformat(),
+            'refreshed': session.refreshed.isoformat(),
+            'expires': session.expires.isoformat()
+        }
+        return json.dumps(resp_data), 200, {'Content-type': 'application/json'}
+
+    except NoResultFound:
+        return '', 404
+
+    except MultipleResultsFound:
+        # TODO: log something
+        return '', 500
 
 
 @app.route('/sessions/<session_id>/permission/<action>/<resource>', methods=['GET'])
