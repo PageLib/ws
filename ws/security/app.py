@@ -4,9 +4,10 @@ import os
 import datetime
 import json
 from uuid import uuid4
-from flask import Flask, request, make_response
+from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 import model
 import user_data
 
@@ -34,8 +35,13 @@ def login_action():
         return '', 412
     user = matches[0]
 
-    # Open the session
+    # Close existing sessions for this user
     dbs = DBSession()
+    opened_sessions = dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
+    for s in opened_sessions:
+        dbs.delete(s)
+
+    # Open the session
     session = model.Session(
         id=uuid4().hex,
         user_id=user['id'],
@@ -54,14 +60,47 @@ def login_action():
     return json.dumps(resp_data), 200, {'Content-type': 'application/json'}
 
 
-@app.route('/logout', methods=['POST'])
-def logout_action():
-    pass
+@app.route('/sessions/<session_id>/logout', methods=['POST'])
+def logout_action(session_id):
+    dbs = DBSession()
+    try:
+        # Find and delete the session
+        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        dbs.delete(session)
+        dbs.commit()
+
+        return json.dumps({'result': 'success'}), 200, {'Content-type': 'application/json'}
+
+    except NoResultFound:
+        return '', 404
+
+    except MultipleResultsFound:
+        # TODO: log something
+        return '', 500
 
 
 @app.route('/sessions/<session_id>', methods=['GET'])
 def session_info_action(session_id):
-    pass
+    dbs = DBSession()
+
+    try:
+        # Find the session
+        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        resp_data = {
+            'session_id': session.id,
+            'user_id': session.user_id,
+            'opened': session.opened.isoformat(),
+            'refreshed': session.refreshed.isoformat(),
+            'expires': session.expires.isoformat()
+        }
+        return json.dumps(resp_data), 200, {'Content-type': 'application/json'}
+
+    except NoResultFound:
+        return '', 404
+
+    except MultipleResultsFound:
+        # TODO: log something
+        return '', 500
 
 
 @app.route('/sessions/<session_id>/permission/<action>/<resource>', methods=['GET'])

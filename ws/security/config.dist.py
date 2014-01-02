@@ -4,3 +4,4 @@
 
 DATABASE_URI = 'sqlite:///:memory:'
 DEBUG = True
+SESSION_LIFETIME = 15*60  # in seconds
