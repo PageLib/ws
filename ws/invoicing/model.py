@@ -59,18 +59,25 @@ class Transaction(ConcreteBase, db.Model):
     }
 
 
-    def __init__(self, title, amount, date_time):
-        self.title = title
-        self.currency = 'EUR'
+    def __init__(self, user, amount, date_time=None):
+        self.user = user
         self.amount = amount
         if date_time is None:
             date_time = datetime.utcnow()
         self.date_time = date_time
+        self.currency = 'EUR'
 
 
     def __repr__(self):
         return '<Transaction {}>'.format(self.id)
 
+    def to_dict(self):
+        return {
+            'user': self.user,
+            'amount': self.amount,
+            'date_time': self.date_time,
+            'currency': self.currency
+        }
 
 class Printing(Transaction):
     """
@@ -90,6 +97,17 @@ class Printing(Transaction):
         'polymorphic_identity': 'printing',
         'concrete': True
     }
+
+    def to_dict(self):
+        return {
+            'user': self.user,
+            'amount': self.amount,
+            'date_time': self.date_time,
+            'currency': self.currency,
+            'pages_color': self.pages_color,
+            'pages_grey_level': self.pages_grey_level,
+            'copies': self.copies
+        }
 
 
 class LoadingCreditCard(Transaction):
