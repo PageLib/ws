@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from flask.ext.sqlalchemy import SQLAlchemy
-from sqlalchemy.types import TypeDecorator, CHAR
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
 import uuid
+from sqlalchemy.types import TypeDecorator, CHAR
+from sqlalchemy.dialects.postgresql import UUID
 
 
 # class GUID(TypeDecorator):
@@ -42,9 +42,9 @@ import uuid
 #             return uuid.UUID(value)
 
 
-class Transaction(db.Model):
+class Transaction(ConcreteBase, db.Model):
     """
-    Parent class for every transactionn.
+    Parent class for every transaction.
     """
     __tablename__ = 'transaction'
     id = db.Column(db.Integer(), primary_key=True)
@@ -52,11 +52,10 @@ class Transaction(db.Model):
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
     currency = db.Column(db.String(3))
-    type = db.Column(db.String(50))
 
     __mapper_args__ = {
         'polymorphic_identity': 'transaction',
-        'polymorphic_on': type
+        'concrete': True
     }
 
 
@@ -78,38 +77,54 @@ class Printing(Transaction):
     Records the printings of the users.
     """
     __tablename__ = 'printing'
-    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True)
+    user = db.Column(db.String(36), nullable=False)
+    amount = db.Column(db.Float(precision=2), nullable=False)
+    date_time = db.Column(db.DateTime(), default='')
+    currency = db.Column(db.String(3))
     pages_color = db.Column(db.Integer)
     pages_grey_level = db.Column(db.Integer)
     copies = db.Column(db.Integer)
 
     __mapper_args__ = {
         'polymorphic_identity': 'printing',
+        'concrete': True
     }
 
 
-class Loading_credit_card(Transaction):
+class LoadingCreditCard(Transaction):
     """
     Records the loadings operations with the credit card made by the user.
     """
     __tablename__ = 'loading_credit_card'
 
-    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True)
+    user = db.Column(db.String(36), nullable=False)
+    amount = db.Column(db.Float(precision=2), nullable=False)
+    date_time = db.Column(db.DateTime(), default='')
+    currency = db.Column(db.String(3))
+
     # On ne sait pas encore ce qu'on aura comme infos ici.
 
     __mapper_args__ = {
         'polymorphic_identity': 'loading_credit_card',
+        'concrete': True
     }
 
 
-class Help_desk(Transaction):
+class HelpDesk(Transaction):
     """
     Records the operations made by the help desk.
     """
     __tablename__ = 'help_desk'
 
-    id = db.Column(db.String(36), db.ForeignKey('transaction.id'), primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True)
+    user = db.Column(db.String(36), nullable=False)
+    amount = db.Column(db.Float(precision=2), nullable=False)
+    date_time = db.Column(db.DateTime(), default='')
+    currency = db.Column(db.String(3))
 
     __mapper_args__ = {
         'polymorphic_identity': 'help_desk',
+        'concrete': True
     }
