@@ -3,43 +3,9 @@
 from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
-import uuid
+from uuid import uuid4
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
-
-
-# class GUID(TypeDecorator):
-#     """Platform-independent GUID type.
-#
-#     Uses Postgresql's UUID type, otherwise uses
-#     CHAR(32), storing as stringified hex values.
-#
-#     """
-#     impl = CHAR
-#
-#     def load_dialect_impl(self, dialect):
-#         if dialect.name == 'postgresql':
-#             return dialect.type_descriptor(UUID())
-#         else:
-#             return dialect.type_descriptor(CHAR(32))
-#
-#     def process_bind_param(self, value, dialect):
-#         if value is None:
-#             return value
-#         elif dialect.name == 'postgresql':
-#             return str(value)
-#         else:
-#             if not isinstance(value, uuid.UUID):
-#                 return "%.32x" % uuid.UUID(value)
-#             else:
-#                 # hexstring
-#                 return "%.32x" % value
-#
-#     def process_result_value(self, value, dialect):
-#         if value is None:
-#             return value
-#         else:
-#             return uuid.UUID(value)
 
 
 class Transaction(ConcreteBase, db.Model):
@@ -47,11 +13,11 @@ class Transaction(ConcreteBase, db.Model):
     Parent class for every transaction.
     """
     __tablename__ = 'transaction'
-    id = db.Column(db.Integer(), primary_key=True)
-    user = db.Column(db.String(36), nullable=False)
+    id = db.Column(db.CHAR(32), primary_key=True)
+    user = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.String(3))
+    currency = db.Column(db.CHAR(3))
 
     __mapper_args__ = {
         'polymorphic_identity': 'transaction',
@@ -60,6 +26,7 @@ class Transaction(ConcreteBase, db.Model):
 
 
     def __init__(self, user, amount, date_time=None):
+        self.id = uuid4().hex
         self.user = user
         self.amount = amount
         if date_time is None:
@@ -84,11 +51,11 @@ class Printing(Transaction):
     Records the printings of the users.
     """
     __tablename__ = 'printing'
-    id = db.Column(db.Integer(), primary_key=True)
-    user = db.Column(db.String(36), nullable=False)
+    id = db.Column(db.CHAR(32), primary_key=True)
+    user = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.String(3))
+    currency = db.Column(db.CHAR(3))
     pages_color = db.Column(db.Integer)
     pages_grey_level = db.Column(db.Integer)
     copies = db.Column(db.Integer)
@@ -98,16 +65,21 @@ class Printing(Transaction):
         'concrete': True
     }
 
+    def __init__(self, user, amount, pages_color, pages_grey_level, copies, date_time=None):
+        self.amount = amount
+        self.pages_color = pages_color
+        self.pages_grey_level = pages_grey_level
+        self.copies = copies
+        super(Printing, self).__init__(user, amount, date_time)
+
     def to_dict(self):
-        return {
-            'user': self.user,
-            'amount': self.amount,
-            'date_time': self.date_time,
-            'currency': self.currency,
+        d = super(Printing, self).to_dict()
+        d.update({
             'pages_color': self.pages_color,
             'pages_grey_level': self.pages_grey_level,
             'copies': self.copies
-        }
+        })
+        return d
 
 
 class LoadingCreditCard(Transaction):
@@ -116,11 +88,11 @@ class LoadingCreditCard(Transaction):
     """
     __tablename__ = 'loading_credit_card'
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user = db.Column(db.String(36), nullable=False)
+    id = db.Column(db.CHAR(32), primary_key=True)
+    user = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.String(3))
+    currency = db.Column(db.CHAR(3))
 
     # On ne sait pas encore ce qu'on aura comme infos ici.
 
@@ -136,11 +108,11 @@ class HelpDesk(Transaction):
     """
     __tablename__ = 'help_desk'
 
-    id = db.Column(db.Integer(), primary_key=True)
-    user = db.Column(db.String(36), nullable=False)
+    id = db.Column(db.CHAR(32), primary_key=True)
+    user = db.Column(db.String(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.String(3))
+    currency = db.Column(db.CHAR(3))
 
     __mapper_args__ = {
         'polymorphic_identity': 'help_desk',

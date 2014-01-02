@@ -13,5 +13,8 @@ app.config.from_object(config_obj)
 api = Api(app)
 db = SQLAlchemy(app)
 
+#from invoicingAPI import InvoicingAPI
+#api.add_ressource(InvoicingAPI, '/v1/invoices/', endpoint='invoice')
+
 if __name__ == '__main__':
     app.run(debug=True)
