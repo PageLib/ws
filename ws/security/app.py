@@ -4,7 +4,7 @@ import os
 import datetime
 import json
 from uuid import uuid4
-from flask import Flask, request, make_response
+from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import model
@@ -34,8 +34,13 @@ def login_action():
         return '', 412
     user = matches[0]
 
-    # Open the session
+    # Close existing sessions for this user
     dbs = DBSession()
+    opened_sessions = dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
+    for s in opened_sessions:
+        dbs.delete(s)
+
+    # Open the session
     session = model.Session(
         id=uuid4().hex,
         user_id=user['id'],
