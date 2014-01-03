@@ -1,4 +1,4 @@
-__author__ = 'Alexis'
+# -*- coding: utf-8 -*-
 
 import os
 os.environ['DIAG_CONFIG_MODULE'] = 'config_test'
@@ -6,7 +6,7 @@ import json
 from app import db
 import app
 import unittest
-
+import copy
 
 class InvoiceTestCase(unittest.TestCase):
 
@@ -40,25 +40,30 @@ class InvoiceTestCase(unittest.TestCase):
                 self.assertEquals(t1['pages_color'], t2['pages_color'])
             if 'pages_grey_level' in t1.keys() and 'pages_grey_level' in t2.keys():
                 self.assertEquals(t1['pages_grey_level'], t2['pages_grey_level'])
+            self.assertEquals(t1['copies'], t2['copies'])
             print(t1)
             print(t2)
-            self.assertEquals(t1['copies'], t2['copies'])
 
-
-
-
-    def test_invoice_list_post_loading_credit_card(self):
+    def test_invoice_list_post_ok(self):
         """
-        POST a transaction, checks the answer and gets it.
+        POST transactions, checks the answer and gets it.
+        The transactions are
+        * loading_credit_card
+        * 3 printings with
+            * both color and grey
+            * only grey
+            * only color
+        * help desk
         """
         # POST
-        ref_transaction1 = {
+        ref_transaction_loading_credit_card = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
-        ref_transaction2 = {
+
+        ref_transaction_printing_both = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 3.0,
             'currency': 'EUR',
@@ -67,8 +72,24 @@ class InvoiceTestCase(unittest.TestCase):
             'pages_grey_level': 3,
             'copies': 3
         }
-        transaction = [ref_transaction1, ref_transaction2]
-        for ref_transaction in transaction:
+
+        ref_transaction_printing_grey = copy.copy(ref_transaction_printing_both)
+        ref_transaction_printing_grey.pop('pages_color')
+
+        ref_transaction_printing_color = copy.copy(ref_transaction_printing_both)
+        ref_transaction_printing_color.pop('pages_grey_level')
+        # Le comportement du logiciel est bizarre: il met 0 dans le champs si on lui
+        # donne rien. Je sais psa si ca pose problème.
+        ref_transaction_help_desk = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 5.0,
+            'currency': 'EUR',
+            'transaction_type': 'help_desk'
+        }
+        transactions = [ref_transaction_loading_credit_card, ref_transaction_printing_both,
+                        ref_transaction_printing_grey, ref_transaction_printing_color,
+                        ref_transaction_help_desk]
+        for ref_transaction in transactions:
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)

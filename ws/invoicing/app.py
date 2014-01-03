@@ -18,3 +18,6 @@ api.add_resource(InvoicingListAPI, '/v1/invoices', endpoint='invoices')
 
 from invoicingAPI import InvoicingAPI
 api.add_resource(InvoicingAPI, '/v1/invoices/<string:id>', endpoint='invoice')
+
+from balanceAPI import BalanceAPI
+api.add_resource(BalanceAPI, '/v1/user/balance/<string:id>', endpoint='balance')

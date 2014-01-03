@@ -31,13 +31,13 @@ class InvoicingListAPI(Resource):
         amount = args['amount']
         currency = args['currency']
         user = args['user']
-        if len(user) !=32:
+        if len(user) != 32:
             return {'error': 'The user id has not the good length.'}, 412
 
         if transaction_type == 'printing':
-            pages_color = args['pages_color']
+            pages_color = args.get('pages_color', None)
+            pages_grey_level = args.get('pages_grey_level', None)
             copies = args['copies']
-            pages_grey_level = args['pages_grey_level']
             #TODO gerer les nulls dans les pages et copies.
             t = Printing(user, amount, currency, pages_color, pages_grey_level, copies)
 
