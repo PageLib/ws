@@ -63,7 +63,7 @@ class InvoiceTestCase(unittest.TestCase):
 
         ref_transaction_printing_both = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 3.0,
+            'amount': -3.0,
             'currency': 'EUR',
             'transaction_type': 'printing',
             'pages_color': 2,
@@ -190,7 +190,7 @@ class InvoiceTestCase(unittest.TestCase):
         """
         ref_transaction = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 3.0,
+            'amount': -3.0,
             'currency': 'EUR',
             'transaction_type': 'printing',
             'pages_color': 2,
@@ -208,7 +208,7 @@ class InvoiceTestCase(unittest.TestCase):
         """
         ref_transaction1 = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 3.0,
+            'amount': -3.0,
             'currency': 'EUR',
             'transaction_type': 'printing',
             'pages_color': 0,
@@ -216,23 +216,12 @@ class InvoiceTestCase(unittest.TestCase):
             'copies': 0
         }
 
-        ref_transaction2 = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 3.0,
-            'currency': 'EUR',
-            'transaction_type': 'printing',
-            'pages_grey_level': 0,
-            'copies': 0
-        }
+        ref_transaction2 = copy.copy(ref_transaction1)
+        ref_transaction2.pop('pages_color')
 
-        ref_transaction3 = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 3.0,
-            'currency': 'EUR',
-            'transaction_type': 'printing',
-            'pages_color': 0,
-            'copies': 0
-        }
+        ref_transaction3 = copy.copy(ref_transaction1)
+        ref_transaction3.pop('pages_grey_level')
+
         transactions = [ref_transaction1, ref_transaction2, ref_transaction3]
         for ref_transaction in transactions:
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),

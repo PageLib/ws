@@ -49,9 +49,17 @@ class InvoicingListAPI(Resource):
             if copies is None or copies <= 0:
                 return {'error': 'A printing should contain copies.'}, 412
 
+            if amount >= 0:
+                return {'error': 'The amount should be negative for a printing.'}, 412
+
+            #TODO check the user balance.
+            #TODO check the coherance between the amount and others variables.
             t = Printing(user, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':
+            if amount <= 0:
+                return {'error': 'The amount should be positive for a loading.'}, 412
+
             t = LoadingCreditCard(user, amount, currency)
 
         elif transaction_type == 'help_desk':

@@ -14,6 +14,10 @@ class BalanceAPI(Resource):
         """
         GET the balance of a given user.
         """
-        pass
+        #TODO check if the User ID exists in the user DB.
+
+
+
+
 
 
