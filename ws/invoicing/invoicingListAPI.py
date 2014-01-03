@@ -31,6 +31,8 @@ class InvoicingListAPI(Resource):
         amount = args['amount']
         currency = args['currency']
         user = args['user']
+        if len(user) !=32:
+            return {'error': 'The user id has not the good length.'}, 412
 
         if transaction_type == 'printing':
             pages_color = args['pages_color']
@@ -52,5 +54,8 @@ class InvoicingListAPI(Resource):
         db.session.add(t)
         db.session.commit()
         return marshal(t.to_dict(), t.get_fields()), 201
+
+    def get(self):
+        pass
 
 

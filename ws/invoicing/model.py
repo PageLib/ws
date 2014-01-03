@@ -4,7 +4,6 @@ from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
 from uuid import uuid4
-from flask import url_for
 
 
 class Transaction(ConcreteBase, db.Model):
@@ -54,11 +53,11 @@ class Transaction(ConcreteBase, db.Model):
         Returns the flask restful type of field.
         """
         from fields import printing_fields, loading_credit_card_fields, help_desk_fields, transaction_fields
-        if self is Printing:
+        if isinstance(self, Printing):
             return printing_fields
-        elif self is LoadingCreditCard:
+        elif isinstance(self, LoadingCreditCard):
             return loading_credit_card_fields
-        elif self is HelpDesk:
+        elif isinstance(self, HelpDesk):
             return help_desk_fields
         else:
             return transaction_fields
@@ -95,7 +94,7 @@ class Printing(Transaction):
         'concrete': True
     }
 
-    def __init__(self, user, amount, pages_color, pages_grey_level, copies, currency, date_time=None):
+    def __init__(self, user, amount, currency, pages_color, pages_grey_level, copies, date_time=None):
         self.amount = amount
         self.pages_color = pages_color
         self.pages_grey_level = pages_grey_level
