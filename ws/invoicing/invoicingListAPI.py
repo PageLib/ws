@@ -33,12 +33,22 @@ class InvoicingListAPI(Resource):
         user = args['user']
         if len(user) != 32:
             return {'error': 'The user id has not the good length.'}, 412
+        #TODO check if the user exists.
 
         if transaction_type == 'printing':
             pages_color = args.get('pages_color', None)
             pages_grey_level = args.get('pages_grey_level', None)
-            copies = args['copies']
-            #TODO gerer les nulls dans les pages et copies.
+
+            #Check if the printing has pages (grey or color).
+            if pages_color is None or pages_color == 0:
+                if pages_grey_level is None or pages_grey_level == 0:
+                    return {'error': 'A printing should contain printings.'}, 412
+            copies = args.get('copies')
+
+            # Check if the printing has a positive number of copies.
+            if copies is None or copies <= 0:
+                return {'error': 'A printing should contain copies.'}, 412
+
             t = Printing(user, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':

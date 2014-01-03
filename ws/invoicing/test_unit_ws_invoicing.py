@@ -41,8 +41,6 @@ class InvoiceTestCase(unittest.TestCase):
             if 'pages_grey_level' in t1.keys() and 'pages_grey_level' in t2.keys():
                 self.assertEquals(t1['pages_grey_level'], t2['pages_grey_level'])
             self.assertEquals(t1['copies'], t2['copies'])
-            print(t1)
-            print(t2)
 
     def test_invoice_list_post_ok(self):
         """
@@ -55,7 +53,7 @@ class InvoiceTestCase(unittest.TestCase):
             * only color
         * help desk
         """
-        # POST
+        #Create test data.
         ref_transaction_loading_credit_card = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 5.0,
@@ -89,7 +87,9 @@ class InvoiceTestCase(unittest.TestCase):
         transactions = [ref_transaction_loading_credit_card, ref_transaction_printing_both,
                         ref_transaction_printing_grey, ref_transaction_printing_color,
                         ref_transaction_help_desk]
+
         for ref_transaction in transactions:
+            # POST
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
@@ -183,3 +183,59 @@ class InvoiceTestCase(unittest.TestCase):
                                 content_type='application/json')
         self.assertJsonContentType(rv_post)
         self.assertEquals(rv_post.status_code, 412)
+
+    def test_invoice_list_copies_null(self):
+        """
+        POST a transaction with a no copies.
+        """
+        ref_transaction = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 3.0,
+            'currency': 'EUR',
+            'transaction_type': 'printing',
+            'pages_color': 2,
+            'pages_grey_level': 3,
+            'copies': 0
+        }
+        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
+                                content_type='application/json')
+        self.assertJsonContentType(rv_post)
+        self.assertEquals(rv_post.status_code, 412)
+
+    def test_invoice_list_pages_null(self):
+        """
+        POST a transaction with a no copies.
+        """
+        ref_transaction1 = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 3.0,
+            'currency': 'EUR',
+            'transaction_type': 'printing',
+            'pages_color': 0,
+            'pages_grey_level': 0,
+            'copies': 0
+        }
+
+        ref_transaction2 = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 3.0,
+            'currency': 'EUR',
+            'transaction_type': 'printing',
+            'pages_grey_level': 0,
+            'copies': 0
+        }
+
+        ref_transaction3 = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 3.0,
+            'currency': 'EUR',
+            'transaction_type': 'printing',
+            'pages_color': 0,
+            'copies': 0
+        }
+        transactions = [ref_transaction1, ref_transaction2, ref_transaction3]
+        for ref_transaction in transactions:
+            rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
+                                    content_type='application/json')
+            self.assertJsonContentType(rv_post)
+            self.assertEquals(rv_post.status_code, 412)
