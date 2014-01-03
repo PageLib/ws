@@ -6,7 +6,8 @@ transaction_fields = {
     'amount': fields.Float,
     'date_time': fields.DateTime,
     'currency': fields.String,
-    'type': fields.String
+    'type': fields.String,
+    'uri': fields.Url('invoice')
 }
 printing_fields = {
     'pages_color': fields.Integer,

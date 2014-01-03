@@ -14,7 +14,7 @@ app.config.from_object(config_obj)
 api = Api(app)
 
 from invoicingListAPI import InvoicingListAPI
-api.add_resource(InvoicingListAPI, '/v1/invoices', endpoint='invoice')
+api.add_resource(InvoicingListAPI, '/v1/invoices', endpoint='invoices')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+from invoicingAPI import InvoicingAPI
+api.add_resource(InvoicingAPI, '/v1/invoices/<string:id>', endpoint='invoice')

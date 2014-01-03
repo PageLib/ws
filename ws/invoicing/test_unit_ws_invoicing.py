@@ -23,12 +23,19 @@ class InvoiceTestCase(unittest.TestCase):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
 
     def test_invoice_list_post_loading_credit_card(self):
+        """
+        POST a transaction then get it.
+        """
+        # POST
         ref_transaction = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 5,
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
-        rv = self.app.post('/v1/invoices', data=json.dumps(ref_transaction), content_type='application/json')
-        self.assertJsonContentType(rv)
-        self.assertEquals(rv.status_code, 201)
+        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction), content_type='application/json')
+        self.assertJsonContentType(rv_post)
+        self.assertEquals(rv_post.status_code, 201)
+        print(rv_post.data)
+
+        #GET

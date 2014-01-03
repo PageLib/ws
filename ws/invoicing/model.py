@@ -45,8 +45,36 @@ class Transaction(ConcreteBase, db.Model):
             'amount': self.amount,
             'date_time': self.date_time,
             'currency': self.currency,
-#            'uri': url_for('invoice', self.id)
+            'id': self.id,
+            'type': self.get_type()
         }
+
+    def get_fields(self):
+        """
+        Returns the flask restful type of field.
+        """
+        from fields import printing_fields, loading_credit_card_fields, help_desk_fields, transaction_fields
+        if self is Printing:
+            return printing_fields
+        elif self is LoadingCreditCard:
+            return loading_credit_card_fields
+        elif self is HelpDesk:
+            return help_desk_fields
+        else:
+            return transaction_fields
+
+    def get_type(self):
+        """
+        Returns the type of transaction.
+        """
+        if self is Printing:
+            return 'printing'
+        elif self is LoadingCreditCard:
+            return 'loading_credit_card'
+        elif self is HelpDesk:
+            return 'help_desk'
+        else:
+            return 'transaction'
 
 class Printing(Transaction):
     """
