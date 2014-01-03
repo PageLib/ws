@@ -1,7 +1,10 @@
+#!flask/bin/python
+# -*- coding: utf-8 -*-
 from flask_restful import Resource, reqparse, marshal
-from app import db
 from model import Printing, LoadingCreditCard, HelpDesk
 from fields import printing_fields, loading_credit_card_fields, help_desk_fields
+from app import db
+
 
 class InvoicingListAPI(Resource):
     def __init__(self):

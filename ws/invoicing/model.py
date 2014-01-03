@@ -5,8 +5,6 @@ from datetime import datetime
 from app import db
 from uuid import uuid4
 from flask import url_for
-from sqlalchemy.types import TypeDecorator, CHAR
-from sqlalchemy.dialects.postgresql import UUID
 
 
 class Transaction(ConcreteBase, db.Model):
