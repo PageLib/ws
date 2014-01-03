@@ -22,14 +22,16 @@ class InvoiceTestCase(unittest.TestCase):
     def assertJsonContentType(self, rv):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
 
-    def assertTransactionEquals(self, transaction, user, amount, currency, transaction_type, date_time=None):
-        self.assertEquals(transaction['user'], user)
-        self.assertEquals(transaction['amount'], amount)
-        #TODO transform amount to numbers.
-        self.assertEquals(transaction['currency'], currency)
-        self.assertEquals(transaction['transaction_type'], transaction_type)
-        if date_time is not None:
-            self.assertEquals(transaction['date_time'], date_time)
+    def assertTransactionEquals(self, t1, t2):
+        self.assertEquals(t1['user'], t2['user'])
+        amount1 = float(t1['amount'])
+        amount2 = float(t2['amount'])
+        self.assertEquals(amount1, amount2)
+        self.assertEquals(t1['currency'], t2['currency'])
+        self.assertEquals(t1['transaction_type'], t2['transaction_type'])
+        if 'date_time' in t1.keys() and 'date_time' in t2.keys():
+            if t1['date_time'] is not None and t2['date_time'] is not None:
+                self.assertEquals(t1['date_time'], t2['date_time'])
 
     def test_invoice_list_post_loading_credit_card(self):
         """
@@ -38,7 +40,7 @@ class InvoiceTestCase(unittest.TestCase):
         # POST
         ref_transaction = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 5,
+            'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
@@ -47,7 +49,4 @@ class InvoiceTestCase(unittest.TestCase):
         self.assertJsonContentType(rv_post)
         self.assertEquals(rv_post.status_code, 201)
         resp = json.loads(rv_post.data)
-        self.assertTransactionEquals(resp, ref_transaction['user'],
-                                     ref_transaction['amount'],
-                                     ref_transaction['currency'],
-                                     ref_transaction['transaction_type'])
+        self.assertTransactionEquals(resp, ref_transaction)

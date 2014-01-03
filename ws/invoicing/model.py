@@ -46,7 +46,7 @@ class Transaction(ConcreteBase, db.Model):
             'date_time': self.date_time,
             'currency': self.currency,
             'id': self.id,
-            'type': self.get_type()
+            'transaction_type': self.get_type()
         }
 
     def get_fields(self):
@@ -67,11 +67,11 @@ class Transaction(ConcreteBase, db.Model):
         """
         Returns the type of transaction.
         """
-        if self is Printing:
+        if isinstance(self, Printing):
             return 'printing'
-        elif self is LoadingCreditCard:
+        elif isinstance(self, LoadingCreditCard):
             return 'loading_credit_card'
-        elif self is HelpDesk:
+        elif isinstance(self, HelpDesk):
             return 'help_desk'
         else:
             return 'transaction'
