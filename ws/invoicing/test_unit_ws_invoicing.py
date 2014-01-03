@@ -35,7 +35,7 @@ class InvoiceTestCase(unittest.TestCase):
 
     def test_invoice_list_post_loading_credit_card(self):
         """
-        POST a transaction and checks the answer.
+        POST a transaction, checks the answer and gets it.
         """
         # POST
         ref_transaction = {
@@ -48,5 +48,15 @@ class InvoiceTestCase(unittest.TestCase):
                                 content_type='application/json')
         self.assertJsonContentType(rv_post)
         self.assertEquals(rv_post.status_code, 201)
-        resp = json.loads(rv_post.data)
-        self.assertTransactionEquals(resp, ref_transaction)
+        resp_post = json.loads(rv_post.data)
+        self.assertTransactionEquals(resp_post, ref_transaction)
+
+        # GET
+        uri = str(resp_post['uri'])
+        print(uri)
+        rv_get = self.app.get(uri)
+        self.assertJsonContentType(rv_get)
+        self.assertEquals(rv_get.status_code, 200)
+        resp_get = json.loads(rv_get.data)
+        self.assertTransactionEquals(resp_post, resp_get)
+
