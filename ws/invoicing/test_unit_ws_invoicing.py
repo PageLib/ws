@@ -106,6 +106,46 @@ class InvoiceTestCase(unittest.TestCase):
             # resp_get = json.loads(rv_get.data)
             # self.assertTransactionEquals(resp_post, resp_get)
 
+    def test_invoice_list_search(self):
+        """
+        POST 4 transactions in the DB and search the ont from a given user.
+        """
+
+        ref_transaction_loading_credit_card = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 5.0,
+            'currency': 'EUR',
+            'transaction_type': 'loading_credit_card'
+        }
+
+        ref_transaction_printing_both = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': -3.0,
+            'currency': 'EUR',
+            'transaction_type': 'printing',
+            'pages_color': 2,
+            'pages_grey_level': 3,
+            'copies': 3
+        }
+        ref_transaction_help_desk = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'amount': 5.0,
+            'currency': 'EUR',
+            'transaction_type': 'help_desk'
+        }
+        ref_transaction_loading_credit_card_other_user = copy.copy(ref_transaction_loading_credit_card)
+        ref_transaction_loading_credit_card_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
+
+        transactions = [ref_transaction_loading_credit_card,
+                        ref_transaction_printing_both, ref_transaction_help_desk,
+                        ref_transaction_loading_credit_card_other_user]
+        for t in transactions:
+            self.app.post('/v1/invoices', data=json.dumps(t),
+                          content_type='application/json')
+        rv = self.app.get('/v1/invoices/s?user=D6F1FF4199954F0EA956DB4709DC227A')
+        resp = json.loads(rv.data)
+        print(resp)
+
     def test_invoice_list_post_bad_user(self):
         """
         POST a transaction with a bad user
@@ -228,3 +268,4 @@ class InvoiceTestCase(unittest.TestCase):
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
+

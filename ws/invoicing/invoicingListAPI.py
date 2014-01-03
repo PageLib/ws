@@ -1,7 +1,7 @@
 #!flask/bin/python
 # -*- coding: utf-8 -*-
 from flask_restful import Resource, reqparse, marshal
-from model import Printing, LoadingCreditCard, HelpDesk
+from model import Printing, LoadingCreditCard, HelpDesk, Transaction
 from fields import printing_fields, loading_credit_card_fields, help_desk_fields
 from app import db
 
@@ -73,7 +73,5 @@ class InvoicingListAPI(Resource):
         db.session.commit()
         return marshal(t.to_dict(), t.get_fields()), 201
 
-    def get(self):
-        pass
 
 
