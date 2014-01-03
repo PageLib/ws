@@ -4,6 +4,7 @@ from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
 from uuid import uuid4
+from flask import url_for
 from sqlalchemy.types import TypeDecorator, CHAR
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -25,14 +26,16 @@ class Transaction(ConcreteBase, db.Model):
     }
 
 
-    def __init__(self, user, amount, date_time=None):
+    def __init__(self, user, amount, currency, date_time=None):
+        #TODO gerer les collisions (on fait un truc global?)
         self.id = uuid4().hex
+        #TODO Controle des users
         self.user = user
         self.amount = amount
         if date_time is None:
             date_time = datetime.utcnow()
         self.date_time = date_time
-        self.currency = 'EUR'
+        self.currency = currency
 
 
     def __repr__(self):
@@ -43,7 +46,8 @@ class Transaction(ConcreteBase, db.Model):
             'user': self.user,
             'amount': self.amount,
             'date_time': self.date_time,
-            'currency': self.currency
+            'currency': self.currency,
+#            'uri': url_for('invoice', self.id)
         }
 
 class Printing(Transaction):
@@ -54,8 +58,8 @@ class Printing(Transaction):
     id = db.Column(db.CHAR(32), primary_key=True)
     user = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
-    date_time = db.Column(db.DateTime(), default='')
     currency = db.Column(db.CHAR(3))
+    date_time = db.Column(db.DateTime(), default='')
     pages_color = db.Column(db.Integer)
     pages_grey_level = db.Column(db.Integer)
     copies = db.Column(db.Integer)
@@ -65,12 +69,12 @@ class Printing(Transaction):
         'concrete': True
     }
 
-    def __init__(self, user, amount, pages_color, pages_grey_level, copies, date_time=None):
+    def __init__(self, user, amount, pages_color, pages_grey_level, copies, currency, date_time=None):
         self.amount = amount
         self.pages_color = pages_color
         self.pages_grey_level = pages_grey_level
         self.copies = copies
-        super(Printing, self).__init__(user, amount, date_time)
+        super(Printing, self).__init__(user, amount, currency, date_time)
 
     def to_dict(self):
         d = super(Printing, self).to_dict()
