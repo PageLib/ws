@@ -1,4 +1,3 @@
-__author__ = 'Alexis'
 from flask_restful import Resource, reqparse, marshal
 from app import db
 from model import Printing, LoadingCreditCard, HelpDesk
