@@ -133,6 +133,26 @@ class InvoiceTestCase(unittest.TestCase):
         for t in resp['transactions']:
             self.assertEquals(t['user'], 'D6F1FF4199954F0EA956DB4709DC227A')
 
+        #We check the transactions issued from today.
+        # Le problème c'est que les données sont pas bones pour le test.
+        # On ne peut fair qu'un test qui soit les prend tous ou aucun.
+        import datetime
+        datetime.timedelta(days=-1)
+        now = datetime.datetime.now()
+        date_from = now.strftime('%d%m%Y')
+        rv = self.app.get('/v1/invoices?from='+date_from)
+        resp = json.loads(rv.data)
+        self.assertEquals(len(resp['transactions']), 4)
+
+        # We check the transactions issued from tomorrow.
+        tomorrow = now + datetime.timedelta(days=1)
+        date_from = tomorrow.strftime('%d%m%Y')
+        rv = self.app.get('/v1/invoices?from='+date_from)
+        resp = json.loads(rv.data)
+        self.assertEquals(len(resp['transactions']), 0)
+
+
+
     def test_invoice_list_error_400(self):
         """
         POST transaction which are not correct and expects a 400 status.

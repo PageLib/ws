@@ -16,6 +16,8 @@ class InvoicingListAPI(Resource):
         self.reqparse.add_argument('copies', type=int, location='json')
         self.reqparse.add_argument('pages_color', type=int, location='json')
         self.reqparse.add_argument('pages_grey_level', type=int, location='json')
+        self.reqparse.add_argument('from', type=str, location='values')
+        self.reqparse.add_argument('to', type=str, location='values')
         super(InvoicingListAPI, self).__init__()
 
     def get_or_412(self, name):
@@ -33,6 +35,18 @@ class InvoicingListAPI(Resource):
         args = self.reqparse.parse_args()
         if args.get('user', None):
             query = query.filter(Transaction.user == args['user'])
+        if args.get('from', None):
+            if len(args['from']) != 8:
+                abort(412)
+            from datetime import datetime
+            date_from = datetime.strptime(args['from'], '%d%m%Y')
+            query = query.filter(Transaction.date_time >= date_from)
+        if args.get('to', None):
+            if len(args['to']) != 8:
+                abort(412)
+            from datetime import datetime
+            date_to = datetime.strptime(args['to'], '%d%m%Y')
+            query = query.filter(Transaction.date_time >= date_to)
         return {'transactions': map(lambda t: marshal(t.to_dict(), t.get_fields()), query.all())}
 
     def post(self):
