@@ -47,6 +47,11 @@ class InvoiceTestCase(unittest.TestCase):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
 
     def assertTransactionEquals(self, t1, t2):
+        """
+        Check if t1 and t2 are equal.
+        If one has no date_time, date_time is not checked.
+        It's the same for pages_color, pages_grey_level if it's a printing instance.
+        """
         self.assertEquals(t1['user'], t2['user'])
         amount1 = float(t1['amount'])
         amount2 = float(t2['amount'])
@@ -94,7 +99,7 @@ class InvoiceTestCase(unittest.TestCase):
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
-            self.assertEquals(rv_post.status_code, 201)
+            self.assertEquals(rv_post.status_code, 201, ref_transaction)
             resp_post = json.loads(rv_post.data)
             self.assertTransactionEquals(resp_post, ref_transaction)
 
@@ -121,15 +126,15 @@ class InvoiceTestCase(unittest.TestCase):
             self.app.post('/v1/invoices', data=json.dumps(t),
                           content_type='application/json')
         rv = self.app.get('/v1/invoices/s?user=D6F1FF4199954F0EA956DB4709DC227A')
+
         resp = json.loads(rv.data)
         print(resp)
+        #TODO test data
 
-    def test_invoice_list_bad_amount(self):
+    def test_invoice_list_error_400(self):
         """
-        POST transactions which are not correct and expects a 400 status.
+        POST transaction which are not correct and expects a 400 status.
         * non integer amount
-        * no user
-        * no amount
         """
         # POST
         transaction_bad_amount = {
@@ -139,32 +144,21 @@ class InvoiceTestCase(unittest.TestCase):
             'transaction_type': 'loading_credit_card'
         }
 
-        transaction_no_user = {
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        transaction_no_amount = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        transactions = [transaction_bad_amount, transaction_no_user,
-                        transaction_no_amount]
+        transactions = [transaction_bad_amount]
 
         for ref_transaction in transactions:
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertEquals(rv_post.status_code, 400)
 
-    def test_invoice_list_pages_null(self):
+    def test_invoice_list_error_412(self):
         """
         POST transactions which are not correct. (412 status).
         * bad user (not the good number of characters in the uuid).
         * non existing transaction type
         * 3 printing with no copies
+        * no user
+        * no amount
         """
         transaction_bad_user = {
             'user': 'D6F1FF4199954F0EA9509DC227A',
@@ -205,9 +199,21 @@ class InvoiceTestCase(unittest.TestCase):
         printing_no_pages3 = copy.copy(printing_no_pages1)
         printing_no_pages3.pop('pages_grey_level')
 
+        transaction_no_user = {
+            'amount': 5.0,
+            'currency': 'EUR',
+            'transaction_type': 'loading_credit_card'
+        }
+
+        transaction_no_amount = {
+            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'currency': 'EUR',
+            'transaction_type': 'loading_credit_card'
+        }
         transactions = [transaction_bad_user, transaction_bad_type,
                         transaction_bad_type,printing_no_copies,
-                        printing_no_pages2, printing_no_pages3]
+                        printing_no_pages2, printing_no_pages3,
+                        transaction_no_user, transaction_no_amount]
 
         for ref_transaction in transactions:
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),

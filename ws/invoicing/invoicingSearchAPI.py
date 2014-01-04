@@ -20,5 +20,4 @@ class InvoicingSearchAPI(Resource):
         args = self.reqparse.parse_args()
         if args.get('user', None):
             query = query.filter(Transaction.user == args['user'])
-
         return {'transactions': map(lambda t: marshal(t.to_dict(), t.get_fields()), query.all())}

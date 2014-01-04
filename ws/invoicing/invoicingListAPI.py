@@ -4,35 +4,42 @@ from flask_restful import Resource, reqparse, marshal
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
 from fields import printing_fields, loading_credit_card_fields, help_desk_fields
 from app import db
-
+from flask import abort
 
 class InvoicingListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('amount', type=int, required=True, location='json',
-                                   help='No amount provided')
-        self.reqparse.add_argument('transaction_type', type=str, location='json',
-                                   required=True, help='No type provided')
-        self.reqparse.add_argument('currency', type=str, location='json',
-                                   required=True, help='No currency provided')
-        self.reqparse.add_argument('user', type=str, location='json',
-                                   required=True, help='No user provided')
+        self.reqparse.add_argument('amount', type=int, location='json')
+        self.reqparse.add_argument('transaction_type', type=str, location='json')
+        self.reqparse.add_argument('currency', type=str, location='json')
+        self.reqparse.add_argument('user', type=str, location='json')
         self.reqparse.add_argument('copies', type=int, location='json')
         self.reqparse.add_argument('pages_color', type=int, location='json')
         self.reqparse.add_argument('pages_grey_level', type=int, location='json')
         super(InvoicingListAPI, self).__init__()
+
+    def get_or_412(self, name):
+        args = self.reqparse.parse_args()
+        if args.get(name, None):
+            return args.get(name, None)
+        else:
+            error = 'No '+name+' provided'
+            abort(412)
 
     def post(self):
         """
         Create a new transaction.
         """
         args = self.reqparse.parse_args()
-        transaction_type = args['transaction_type']
-        amount = args['amount']
-        currency = args['currency']
-        user = args['user']
+        #Check if the required fields are present.
+        transaction_type = self.get_or_412('transaction_type')
+        amount = self.get_or_412('amount')
+        currency = self.get_or_412('currency')
+        user = self.get_or_412('user')
         if len(user) != 32:
             return {'error': 'The user id has not the good length.'}, 412
+        if len(currency) != 3:
+            return {'error': 'The currency has not the good length.'}, 412
         #TODO check if the user exists.
 
         if transaction_type == 'printing':
@@ -53,7 +60,7 @@ class InvoicingListAPI(Resource):
                 return {'error': 'The amount should be negative for a printing.'}, 412
 
             #TODO check the user balance.
-            #TODO check the coherance between the amount and others variables.
+            #TODO check the coherence between the amount and others variables.
             t = Printing(user, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':
