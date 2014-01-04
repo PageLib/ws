@@ -146,89 +146,63 @@ class InvoiceTestCase(unittest.TestCase):
         resp = json.loads(rv.data)
         print(resp)
 
-    def test_invoice_list_post_bad_user(self):
-        """
-        POST a transaction with a bad user
-        (not the good number of characters in the uuid).
-        """
-        ref_transaction = {
-            'user': 'D6F1FF4199954F0EA9509DC227A',
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertEquals(rv_post.status_code, 412)
-
     def test_invoice_list_bad_amount(self):
         """
-        POST a transaction with a bad amount and expects an error.
+        POST transactions which are not correct and expects a 400 status.
+        * non integer amount
+        * no user
+        * no amount
         """
         # POST
-        ref_transaction = {
+        transaction_bad_amount = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 'a',
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
 
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertEquals(rv_post.status_code, 400)
-
-    def test_invoice_list_no_user(self):
-        """
-        POST a transaction with no user.
-        """
-
-        ref_transaction = {
+        transaction_no_user = {
             'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
 
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertEquals(rv_post.status_code, 400)
-
-    def test_invoice_list_no_amount(self):
-        """
-        POST a transaction with no amount
-        """
-        ref_transaction = {
+        transaction_no_amount = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
 
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertJsonContentType(rv_post)
-        self.assertEquals(rv_post.status_code, 400)
+        transactions = [transaction_bad_amount, transaction_no_user,
+                        transaction_no_amount]
 
-    def test_invoice_list_bad_transaction_type(self):
+        for ref_transaction in transactions:
+            rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
+                                    content_type='application/json')
+            self.assertEquals(rv_post.status_code, 400)
+
+    def test_invoice_list_pages_null(self):
         """
-        POST a transaction with a bad transaction_type.
+        POST transactions which are not correct. (412 status).
+        * bad user (not the good number of characters in the uuid).
+        * non existing transaction type
+        * 3 printing with no copies
         """
-        ref_transaction = {
+        transaction_bad_user = {
+            'user': 'D6F1FF4199954F0EA9509DC227A',
+            'amount': 5.0,
+            'currency': 'EUR',
+            'transaction_type': 'loading_credit_card'
+        }
+
+        transaction_bad_type = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'plop'
         }
 
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertJsonContentType(rv_post)
-        self.assertEquals(rv_post.status_code, 412)
-
-    def test_invoice_list_copies_null(self):
-        """
-        POST a transaction with a no copies.
-        """
-        ref_transaction = {
+        printing_no_copies = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': -3.0,
             'currency': 'EUR',
@@ -237,16 +211,7 @@ class InvoiceTestCase(unittest.TestCase):
             'pages_grey_level': 3,
             'copies': 0
         }
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                content_type='application/json')
-        self.assertJsonContentType(rv_post)
-        self.assertEquals(rv_post.status_code, 412)
-
-    def test_invoice_list_pages_null(self):
-        """
-        POST a transaction with a no copies.
-        """
-        ref_transaction1 = {
+        printing_no_pages1 = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': -3.0,
             'currency': 'EUR',
@@ -256,13 +221,16 @@ class InvoiceTestCase(unittest.TestCase):
             'copies': 0
         }
 
-        ref_transaction2 = copy.copy(ref_transaction1)
-        ref_transaction2.pop('pages_color')
+        printing_no_pages2 = copy.copy(printing_no_pages1)
+        printing_no_pages2.pop('pages_color')
 
-        ref_transaction3 = copy.copy(ref_transaction1)
-        ref_transaction3.pop('pages_grey_level')
+        printing_no_pages3 = copy.copy(printing_no_pages1)
+        printing_no_pages3.pop('pages_grey_level')
 
-        transactions = [ref_transaction1, ref_transaction2, ref_transaction3]
+        transactions = [transaction_bad_user, transaction_bad_type,
+                        transaction_bad_type,printing_no_copies,
+                        printing_no_pages2, printing_no_pages3]
+
         for ref_transaction in transactions:
             rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
                                     content_type='application/json')
