@@ -8,7 +8,31 @@ import app
 import unittest
 import copy
 
+
 class InvoiceTestCase(unittest.TestCase):
+
+    ref_transaction_loading_credit_card = {
+        'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'amount': 5.0,
+        'currency': 'EUR',
+        'transaction_type': 'loading_credit_card'
+    }
+
+    ref_transaction_printing_both = {
+        'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'amount': -3.0,
+        'currency': 'EUR',
+        'transaction_type': 'printing',
+        'pages_color': 2,
+        'pages_grey_level': 3,
+        'copies': 3
+    }
+    ref_transaction_help_desk = {
+        'user': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'amount': 5.0,
+        'currency': 'EUR',
+        'transaction_type': 'help_desk'
+    }
 
     def setUp(self):
         app.app.config['TESTING'] = True
@@ -54,39 +78,16 @@ class InvoiceTestCase(unittest.TestCase):
         * help desk
         """
         #Create test data.
-        ref_transaction_loading_credit_card = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        ref_transaction_printing_both = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': -3.0,
-            'currency': 'EUR',
-            'transaction_type': 'printing',
-            'pages_color': 2,
-            'pages_grey_level': 3,
-            'copies': 3
-        }
-
-        ref_transaction_printing_grey = copy.copy(ref_transaction_printing_both)
+        ref_transaction_printing_grey = copy.copy(self.ref_transaction_printing_both)
         ref_transaction_printing_grey.pop('pages_color')
 
-        ref_transaction_printing_color = copy.copy(ref_transaction_printing_both)
+        ref_transaction_printing_color = copy.copy(self.ref_transaction_printing_both)
         ref_transaction_printing_color.pop('pages_grey_level')
         # Le comportement du logiciel est bizarre: il met 0 dans le champs si on lui
         # donne rien. Je sais psa si ca pose problème.
-        ref_transaction_help_desk = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'help_desk'
-        }
-        transactions = [ref_transaction_loading_credit_card, ref_transaction_printing_both,
+        transactions = [self.ref_transaction_loading_credit_card, self.ref_transaction_printing_both,
                         ref_transaction_printing_grey, ref_transaction_printing_color,
-                        ref_transaction_help_desk]
+                        self.ref_transaction_help_desk]
 
         for ref_transaction in transactions:
             # POST
@@ -97,7 +98,7 @@ class InvoiceTestCase(unittest.TestCase):
             resp_post = json.loads(rv_post.data)
             self.assertTransactionEquals(resp_post, ref_transaction)
 
-            # GET
+            # # GET
             # uri = str(resp_post['uri'])
             # print(uri)
             # rv_get = self.app.get(uri)
@@ -110,34 +111,11 @@ class InvoiceTestCase(unittest.TestCase):
         """
         POST 4 transactions in the DB and search the ont from a given user.
         """
-
-        ref_transaction_loading_credit_card = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        ref_transaction_printing_both = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': -3.0,
-            'currency': 'EUR',
-            'transaction_type': 'printing',
-            'pages_color': 2,
-            'pages_grey_level': 3,
-            'copies': 3
-        }
-        ref_transaction_help_desk = {
-            'user': 'D6F1FF4199954F0EA956DB4709DC227A',
-            'amount': 5.0,
-            'currency': 'EUR',
-            'transaction_type': 'help_desk'
-        }
-        ref_transaction_loading_credit_card_other_user = copy.copy(ref_transaction_loading_credit_card)
+        ref_transaction_loading_credit_card_other_user = copy.copy(self.ref_transaction_loading_credit_card)
         ref_transaction_loading_credit_card_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
 
-        transactions = [ref_transaction_loading_credit_card,
-                        ref_transaction_printing_both, ref_transaction_help_desk,
+        transactions = [self.ref_transaction_loading_credit_card,
+                        self.ref_transaction_printing_both, self.ref_transaction_help_desk,
                         ref_transaction_loading_credit_card_other_user]
         for t in transactions:
             self.app.post('/v1/invoices', data=json.dumps(t),
