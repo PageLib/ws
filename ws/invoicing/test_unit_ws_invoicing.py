@@ -114,7 +114,9 @@ class InvoiceTestCase(unittest.TestCase):
 
     def test_invoice_list_search(self):
         """
-        POST 4 transactions in the DB and search the ont from a given user.
+        POST 4 transactions in the DB and search the ones from a given user.
+        We check the number of transactions answered and that they belong
+        to the good person.
         """
         ref_transaction_loading_credit_card_other_user = copy.copy(self.ref_transaction_loading_credit_card)
         ref_transaction_loading_credit_card_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
@@ -125,11 +127,11 @@ class InvoiceTestCase(unittest.TestCase):
         for t in transactions:
             self.app.post('/v1/invoices', data=json.dumps(t),
                           content_type='application/json')
-        rv = self.app.get('/v1/invoices/s?user=D6F1FF4199954F0EA956DB4709DC227A')
-
+        rv = self.app.get('/v1/invoices?user=D6F1FF4199954F0EA956DB4709DC227A')
         resp = json.loads(rv.data)
-        print(resp)
-        #TODO test data
+        self.assertEquals(len(resp['transactions']), 3)
+        for t in resp['transactions']:
+            self.assertEquals(t['user'], 'D6F1FF4199954F0EA956DB4709DC227A')
 
     def test_invoice_list_error_400(self):
         """

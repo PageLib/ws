@@ -12,7 +12,7 @@ class InvoicingListAPI(Resource):
         self.reqparse.add_argument('amount', type=int, location='json')
         self.reqparse.add_argument('transaction_type', type=str, location='json')
         self.reqparse.add_argument('currency', type=str, location='json')
-        self.reqparse.add_argument('user', type=str, location='json')
+        self.reqparse.add_argument('user', type=str, location=('json', 'values'))
         self.reqparse.add_argument('copies', type=int, location='json')
         self.reqparse.add_argument('pages_color', type=int, location='json')
         self.reqparse.add_argument('pages_grey_level', type=int, location='json')
@@ -24,7 +24,16 @@ class InvoicingListAPI(Resource):
             return args.get(name, None)
         else:
             error = 'No '+name+' provided'
-            abort(412)
+            abort(412, error)
+
+    def get(self):
+        query = db.session.query(Transaction)
+
+        # Optional filters
+        args = self.reqparse.parse_args()
+        if args.get('user', None):
+            query = query.filter(Transaction.user == args['user'])
+        return {'transactions': map(lambda t: marshal(t.to_dict(), t.get_fields()), query.all())}
 
     def post(self):
         """
