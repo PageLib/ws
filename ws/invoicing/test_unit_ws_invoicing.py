@@ -104,14 +104,12 @@ class InvoiceTestCase(unittest.TestCase):
             resp_post = json.loads(rv_post.data)
             self.assertTransactionEquals(resp_post, ref_transaction)
 
-            # # GET
-            # uri = str(resp_post['uri'])
-            # print(uri)
-            # rv_get = self.app.get(uri)
-            # self.assertJsonContentType(rv_get)
-            # self.assertEquals(rv_get.status_code, 200)
-            # resp_get = json.loads(rv_get.data)
-            # self.assertTransactionEquals(resp_post, resp_get)
+            # GET
+            rv_get = self.app.get('/v1/invoices/' + resp_post['id'])
+            self.assertJsonContentType(rv_get)
+            self.assertEquals(rv_get.status_code, 200)
+            resp_get = json.loads(rv_get.data)
+            self.assertTransactionEquals(resp_post, resp_get)
 
     def test_invoice_list_search(self):
         """

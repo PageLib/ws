@@ -1,13 +1,24 @@
 from flask_restful import fields
 __author__ = 'Alexis'
 
+
+class IsoDateTime(fields.Raw):
+    """Return a ISO-formatted datetime string in UTC"""
+
+    def format(self, value):
+        try:
+            return value.isoformat()
+        except AttributeError as ae:
+            raise fields.MarshallingException(ae)
+
+
 transaction_fields = {
+    'id': fields.String,
     'user':  fields.String,
     'amount': fields.Float,
-    'date_time': fields.DateTime,
+    'date_time': IsoDateTime,
     'currency': fields.String,
-    'transaction_type': fields.String,
-    'uri': fields.Url('invoice')
+    'transaction_type': fields.String
 }
 printing_fields = {
     'pages_color': fields.Integer,

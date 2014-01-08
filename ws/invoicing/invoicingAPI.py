@@ -19,7 +19,7 @@ class InvoicingAPI(Resource):
         try:
             # Find the transaction.
             t = db.session.query(Transaction).filter_by(id=id).one()
-            return marshal(t.to_dict(), t.get_fields)
+            return marshal(t.to_dict(), t.get_fields())
 
         except NoResultFound:
             return '', 404
