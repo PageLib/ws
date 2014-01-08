@@ -2,7 +2,7 @@
 
 import os
 import datetime
-os.environ['PAGELIB_WS_INVOICING_CONFIG'] = 'config_test'
+os.environ['PAGELIB_WS_INVOICING_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
 import json
 from app import db
 import app
