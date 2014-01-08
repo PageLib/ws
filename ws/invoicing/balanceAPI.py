@@ -11,22 +11,16 @@ class BalanceAPI(Resource):
     def __init__(self):
         super(BalanceAPI, self).__init__()
 
-    def get(self, id):
+    def get(self, user_id):
         """
         GET the balance of a given user.
         """
         #TODO check if the User ID exists in the user DB.
-        #If there is no transaction the balance is 0.
 
-        # if not db.session.query(exists().where(Transaction.id==id)).scalar():
-        #     return {
-        #         'user_id': id,
-        #         'balance': 0
-        #     }
-        print(db.session.query(Transaction).all())
         balance = db.session.query(func.sum(Transaction.amount).label('sum'))\
-                    .filter(Transaction.id == id).scalar()
+                    .filter(Transaction.user == user_id).scalar()
+
         return {
-                'user_id':id,
-                'balance': balance
-            }
+            'user_id': user_id,
+            'balance': balance if balance is not None else 0
+        }

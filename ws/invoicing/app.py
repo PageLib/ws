@@ -22,4 +22,4 @@ api = Api(app)
 
 api.add_resource(TransactionListAPI, '/v1/invoices', endpoint='invoices')
 api.add_resource(InvoicingAPI, '/v1/invoices/<string:id>', endpoint='invoice')
-api.add_resource(BalanceAPI, '/v1/user/balance/<string:id>', endpoint='balance')
+api.add_resource(BalanceAPI, '/v1/user/balance/<string:user_id>', endpoint='balance')
