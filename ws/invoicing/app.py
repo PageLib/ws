@@ -4,11 +4,13 @@ from flask import Flask, make_response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
 
-config_obj = os.environ.get("PAGELIB_WS_INVOICING_CONFIG", "config_dev")
-
 app = Flask(__name__)
+
+config_path = os.environ.get('PAGELIB_WS_INVOICING_CONFIG',
+                             os.path.dirname(__file__) + '/config.py')
+app.config.from_pyfile(config_path)
+
 db = SQLAlchemy(app)
-app.config.from_object(config_obj)
 
 from TransactionListAPI import TransactionListAPI
 from TransactionAPI import TransactionAPI
