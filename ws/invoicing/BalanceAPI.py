@@ -1,10 +1,10 @@
 #!flask/bin/python
 # -*- coding: utf-8 -*-
-from flask_restful import Resource, marshal
-from sqlalchemy.sql import func, exists
-from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from fields import printing_fields, loading_credit_card_fields, help_desk_fields
-from app import db
+from flask_restful import Resource
+from flask import request
+from sqlalchemy.sql import func
+from model import Transaction
+
 
 
 class BalanceAPI(Resource):
@@ -17,8 +17,8 @@ class BalanceAPI(Resource):
         """
         #TODO check if the User ID exists in the user DB.
 
-        balance = db.session.query(func.sum(Transaction.amount).label('sum'))\
-                    .filter(Transaction.user_id == user_id).scalar()
+        balance = request.dbs.query(func.sum(Transaction.amount).label('sum'))\
+            .filter(Transaction.user_id == user_id).scalar()
 
         return {
             'user_id': user_id,

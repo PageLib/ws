@@ -1,2 +1,4 @@
-from app import db
-db.create_all()
+import app
+import model
+
+model.Base.metadata.create_all(app.db_engine)
