@@ -2,12 +2,12 @@
 
 import os
 import datetime
-os.environ['PAGELIB_WS_INVOICING_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
 import json
-from app import db
-import app
 import unittest
 from copy import copy
+
+os.environ['PAGELIB_WS_INVOICING_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
+from ws.invoicing.app import app, db
 
 
 class InvoiceTestCase(unittest.TestCase):
@@ -36,8 +36,7 @@ class InvoiceTestCase(unittest.TestCase):
     }
 
     def setUp(self):
-        app.app.config['TESTING'] = True
-        self.app = app.app.test_client()
+        self.app = app.test_client()
         db.create_all()
 
     def tearDown(self):
