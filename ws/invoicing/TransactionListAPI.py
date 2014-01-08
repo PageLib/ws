@@ -9,7 +9,7 @@ from app import db
 class TransactionListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('amount', type=int, location='json')
+        self.reqparse.add_argument('amount', type=float, location='json')
         self.reqparse.add_argument('transaction_type', type=str, location='json')
         self.reqparse.add_argument('currency', type=str, location='json')
         self.reqparse.add_argument('user_id', type=str, location=('json', 'values'))
