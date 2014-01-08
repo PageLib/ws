@@ -11,8 +11,8 @@ db = SQLAlchemy(app)
 app.config.from_object(config_obj)
 
 from TransactionListAPI import TransactionListAPI
-from invoicingAPI import InvoicingAPI
-from balanceAPI import BalanceAPI
+from TransactionAPI import TransactionAPI
+from BalanceAPI import BalanceAPI
 
 @app.errorhandler(412)
 def not_found(error):
@@ -21,5 +21,5 @@ def not_found(error):
 api = Api(app)
 
 api.add_resource(TransactionListAPI, '/v1/invoices', endpoint='invoices')
-api.add_resource(InvoicingAPI, '/v1/invoices/<string:id>', endpoint='invoice')
+api.add_resource(TransactionAPI, '/v1/invoices/<string:id>', endpoint='invoice')
 api.add_resource(BalanceAPI, '/v1/user/balance/<string:user_id>', endpoint='balance')

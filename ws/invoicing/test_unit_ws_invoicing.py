@@ -2,7 +2,7 @@
 
 import os
 import datetime
-os.environ['DIAG_CONFIG_MODULE'] = 'config_test'
+os.environ['PAGELIB_WS_INVOICING_CONFIG'] = 'config_test'
 import json
 from app import db
 import app

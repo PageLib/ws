@@ -7,10 +7,10 @@ from app import db
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 
-class InvoicingAPI(Resource):
+class TransactionAPI(Resource):
 
     def __init__(self):
-        super(InvoicingAPI, self).__init__()
+        super(TransactionAPI, self).__init__()
 
     def get(self, id):
         """
