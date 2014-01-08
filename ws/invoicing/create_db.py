@@ -1,5 +1,4 @@
+import app
 import model
-from sqlalchemy import create_engine
 
-db_engine = create_engine('sqlite:///dev.db')
-model.Base.metadata.create_all(db_engine)
+model.Base.metadata.create_all(app.db_engine)
