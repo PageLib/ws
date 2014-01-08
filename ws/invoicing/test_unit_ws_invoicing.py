@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import datetime
 os.environ['DIAG_CONFIG_MODULE'] = 'config_test'
 import json
 from app import db
@@ -122,11 +123,13 @@ class InvoiceTestCase(unittest.TestCase):
         ref_transaction_loading_credit_card_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
 
         transactions = [self.ref_transaction_loading_credit_card,
-                        self.ref_transaction_printing_both, self.ref_transaction_help_desk,
+                        self.ref_transaction_printing_both,
+                        self.ref_transaction_help_desk,
                         ref_transaction_loading_credit_card_other_user]
+
         for t in transactions:
-            self.app.post('/v1/invoices', data=json.dumps(t),
-                          content_type='application/json')
+            self.app.post('/v1/invoices', data=json.dumps(t), content_type='application/json')
+
         rv = self.app.get('/v1/invoices?user=D6F1FF4199954F0EA956DB4709DC227A')
         resp = json.loads(rv.data)
         self.assertEquals(len(resp['transactions']), 3)
@@ -136,29 +139,23 @@ class InvoiceTestCase(unittest.TestCase):
         #We check the transactions issued from today.
         # Le problème c'est que les données sont pas bones pour le test.
         # On ne peut fair qu'un test qui soit les prend tous ou aucun.
-        import datetime
-        datetime.timedelta(days=-1)
-        now = datetime.datetime.now()
-        date_from = now.strftime('%d%m%Y')
-        rv = self.app.get('/v1/invoices?from='+date_from)
-        resp = json.loads(rv.data)
-        self.assertEquals(len(resp['transactions']), 4)
+        date_from_1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        rv_1 = self.app.get('/v1/invoices?from=' + date_from_1)
+        resp_1 = json.loads(rv_1.data)
+        self.assertEquals(len(resp_1['transactions']), 4)
 
         # We check the transactions issued from tomorrow.
-        tomorrow = now + datetime.timedelta(days=1)
-        date_from = tomorrow.strftime('%d%m%Y')
-        rv = self.app.get('/v1/invoices?from='+date_from)
-        resp = json.loads(rv.data)
-        self.assertEquals(len(resp['transactions']), 0)
-
-
+        date_from_2 = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+        rv_2 = self.app.get('/v1/invoices?from=' + date_from_2)
+        resp_2 = json.loads(rv_2.data)
+        self.assertEquals(len(resp_2['transactions']), 0)
 
     def test_invoice_list_error_400(self):
         """
         POST transaction which are not correct and expects a 400 status.
         * non integer amount
         """
-        # POST
+
         transaction_bad_amount = {
             'user': 'D6F1FF4199954F0EA956DB4709DC227A',
             'amount': 'a',
@@ -166,12 +163,9 @@ class InvoiceTestCase(unittest.TestCase):
             'transaction_type': 'loading_credit_card'
         }
 
-        transactions = [transaction_bad_amount]
-
-        for ref_transaction in transactions:
-            rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
-                                    content_type='application/json')
-            self.assertEquals(rv_post.status_code, 400)
+        rv_post = self.app.post('/v1/invoices', data=json.dumps(transaction_bad_amount),
+                                content_type='application/json')
+        self.assertEquals(rv_post.status_code, 400)
 
     def test_invoice_list_error_412(self):
         """
@@ -242,4 +236,3 @@ class InvoiceTestCase(unittest.TestCase):
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
-

@@ -1,10 +1,10 @@
-#!flask/bin/python
 # -*- coding: utf-8 -*-
+from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
-from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from fields import printing_fields, loading_credit_card_fields, help_desk_fields
-from app import db
 from flask import abort
+from model import Printing, LoadingCreditCard, HelpDesk, Transaction
+from app import db
+
 
 class InvoicingListAPI(Resource):
     def __init__(self):
@@ -20,12 +20,11 @@ class InvoicingListAPI(Resource):
         self.reqparse.add_argument('to', type=str, location='values')
         super(InvoicingListAPI, self).__init__()
 
-    def get_or_412(self, name):
-        args = self.reqparse.parse_args()
+    def get_or_412(self, args, name):
         if args.get(name, None):
             return args.get(name, None)
         else:
-            error = 'No '+name+' provided'
+            error = 'No ' + name + ' provided'
             abort(412, error)
 
     def get(self):
@@ -35,18 +34,21 @@ class InvoicingListAPI(Resource):
         args = self.reqparse.parse_args()
         if args.get('user', None):
             query = query.filter(Transaction.user == args['user'])
+
         if args.get('from', None):
-            if len(args['from']) != 8:
+            try:
+                date_from = datetime.strptime(args['from'], '%Y-%m-%d')
+                query = query.filter(Transaction.date_time >= date_from)
+            except ValueError:
                 abort(412)
-            from datetime import datetime
-            date_from = datetime.strptime(args['from'], '%d%m%Y')
-            query = query.filter(Transaction.date_time >= date_from)
+
         if args.get('to', None):
-            if len(args['to']) != 8:
+            try:
+                date_to = datetime.strptime(args['to'], '%Y-%m-%d')
+                query = query.filter(Transaction.date_time <= date_to)
+            except ValueError:
                 abort(412)
-            from datetime import datetime
-            date_to = datetime.strptime(args['to'], '%d%m%Y')
-            query = query.filter(Transaction.date_time >= date_to)
+
         return {'transactions': map(lambda t: marshal(t.to_dict(), t.get_fields()), query.all())}
 
     def post(self):
@@ -54,11 +56,13 @@ class InvoicingListAPI(Resource):
         Create a new transaction.
         """
         args = self.reqparse.parse_args()
-        #Check if the required fields are present.
-        transaction_type = self.get_or_412('transaction_type')
-        amount = self.get_or_412('amount')
-        currency = self.get_or_412('currency')
-        user = self.get_or_412('user')
+
+        # Check if the required fields are present.
+        transaction_type = self.get_or_412(args, 'transaction_type')
+        amount = self.get_or_412(args, 'amount')
+        currency = self.get_or_412(args, 'currency')
+        user = self.get_or_412(args, 'user')
+
         if len(user) != 32:
             return {'error': 'The user id has not the good length.'}, 412
         if len(currency) != 3:
@@ -66,21 +70,21 @@ class InvoicingListAPI(Resource):
         #TODO check if the user exists.
 
         if transaction_type == 'printing':
-            pages_color = args.get('pages_color', None)
-            pages_grey_level = args.get('pages_grey_level', None)
+            pages_color = args.get('pages_color', 0)
+            pages_grey_level = args.get('pages_grey_level', 0)
 
-            #Check if the printing has pages (grey or color).
-            if pages_color is None or pages_color == 0:
-                if pages_grey_level is None or pages_grey_level == 0:
-                    return {'error': 'A printing should contain printings.'}, 412
-            copies = args.get('copies')
+            # Check if the printing has pages (grey or color).
+            if pages_color == 0 and pages_grey_level == 0:
+                return {'error': 'No color or grey level page.'}, 412
+
+            copies = self.get_or_412(args, 'copies')
 
             # Check if the printing has a positive number of copies.
-            if copies is None or copies <= 0:
-                return {'error': 'A printing should contain copies.'}, 412
+            if copies <= 0:
+                return {'error': 'Null number of copies.'}, 412
 
             if amount >= 0:
-                return {'error': 'The amount should be negative for a printing.'}, 412
+                return {'error': 'Positive amount (should be negative for a printing).'}, 412
 
             #TODO check the user balance.
             #TODO check the coherence between the amount and others variables.
@@ -88,20 +92,18 @@ class InvoicingListAPI(Resource):
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:
-                return {'error': 'The amount should be positive for a loading.'}, 412
+                return {'error': 'Negative amount (should be positive for a printing).'}, 412
 
             t = LoadingCreditCard(user, amount, currency)
 
         elif transaction_type == 'help_desk':
             t = HelpDesk(user, amount, currency)
 
-        #If the type is not good
+        # If the type is not good
         else:
-            return {'error': 'Type unknown'}, 412
+            return {'error': 'Unknown type.'}, 412
 
         db.session.add(t)
         db.session.commit()
+
         return marshal(t.to_dict(), t.get_fields()), 201
-
-
-
