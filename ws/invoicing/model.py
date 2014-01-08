@@ -4,24 +4,26 @@ from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
 from uuid import uuid4
+import fields
 
 
-class Transaction(ConcreteBase, db.Model):
+class Transaction(db.Model):
     """
     Parent class for every transaction.
     """
     __tablename__ = 'transaction'
+
     id = db.Column(db.CHAR(32), primary_key=True)
+    type = db.Column(db.String(50))
     user = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
     currency = db.Column(db.CHAR(3))
 
     __mapper_args__ = {
-        'polymorphic_identity': 'transaction',
-        'concrete': True
+        'polymorphic_on': type,
+        'polymorphic_identity': 'transaction'
     }
-
 
     def __init__(self, user, amount, currency, date_time=None):
         #TODO gerer les collisions (on fait un truc global?)
@@ -34,7 +36,6 @@ class Transaction(ConcreteBase, db.Model):
         self.date_time = date_time
         self.currency = currency
 
-
     def __repr__(self):
         return '<Transaction {}>'.format(self.id)
 
@@ -45,54 +46,29 @@ class Transaction(ConcreteBase, db.Model):
             'date_time': self.date_time,
             'currency': self.currency,
             'id': self.id,
-            'transaction_type': self.get_type()
+            'transaction_type': self.type
         }
 
     def get_fields(self):
         """
         Returns the flask restful type of field.
         """
-        from fields import printing_fields, loading_credit_card_fields, help_desk_fields, transaction_fields
-        if isinstance(self, Printing):
-            return printing_fields
-        elif isinstance(self, LoadingCreditCard):
-            return loading_credit_card_fields
-        elif isinstance(self, HelpDesk):
-            return help_desk_fields
-        else:
-            return transaction_fields
+        return fields.transaction_fields
 
-    def get_type(self):
-        """
-        Returns the type of transaction.
-        """
-        if isinstance(self, Printing):
-            return 'printing'
-        elif isinstance(self, LoadingCreditCard):
-            return 'loading_credit_card'
-        elif isinstance(self, HelpDesk):
-            return 'help_desk'
-        else:
-            return 'transaction'
 
 class Printing(Transaction):
     """
     Records the printings of the users.
     """
     __tablename__ = 'printing'
-    id = db.Column(db.CHAR(32), primary_key=True)
-    user = db.Column(db.CHAR(32), nullable=False)
-    amount = db.Column(db.Float(precision=2), nullable=False)
-    currency = db.Column(db.CHAR(3))
-    date_time = db.Column(db.DateTime(), default='')
+    __mapper_args__ = {
+        'polymorphic_identity': 'printing'
+    }
+
+    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
     pages_color = db.Column(db.Integer)
     pages_grey_level = db.Column(db.Integer)
     copies = db.Column(db.Integer)
-
-    __mapper_args__ = {
-        'polymorphic_identity': 'printing',
-        'concrete': True
-    }
 
     def __init__(self, user, amount, currency, pages_color, pages_grey_level, copies, date_time=None):
         self.amount = amount
@@ -110,25 +86,21 @@ class Printing(Transaction):
         })
         return d
 
+    def get_fields(self):
+        return fields.printing_fields
+
 
 class LoadingCreditCard(Transaction):
     """
     Records the loadings operations with the credit card made by the user.
     """
     __tablename__ = 'loading_credit_card'
-
-    id = db.Column(db.CHAR(32), primary_key=True)
-    user = db.Column(db.CHAR(32), nullable=False)
-    amount = db.Column(db.Float(precision=2), nullable=False)
-    date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.CHAR(3))
-
-    # On ne sait pas encore ce qu'on aura comme infos ici.
-
     __mapper_args__ = {
-        'polymorphic_identity': 'loading_credit_card',
-        'concrete': True
+        'polymorphic_identity': 'loading_credit_card'
     }
+
+    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
+    # On ne sait pas encore ce qu'on aura comme infos ici.
 
 
 class HelpDesk(Transaction):
@@ -136,14 +108,8 @@ class HelpDesk(Transaction):
     Records the operations made by the help desk.
     """
     __tablename__ = 'help_desk'
-
-    id = db.Column(db.CHAR(32), primary_key=True)
-    user = db.Column(db.String(32), nullable=False)
-    amount = db.Column(db.Float(precision=2), nullable=False)
-    date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.CHAR(3))
-
     __mapper_args__ = {
-        'polymorphic_identity': 'help_desk',
-        'concrete': True
+        'polymorphic_identity': 'help_desk'
     }
+
+    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
