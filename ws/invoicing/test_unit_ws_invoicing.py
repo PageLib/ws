@@ -97,7 +97,7 @@ class InvoiceTestCase(unittest.TestCase):
 
         for ref_transaction in transactions:
             # POST
-            rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
+            rv_post = self.app.post('/v1/transactions', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 201, ref_transaction)
@@ -105,7 +105,7 @@ class InvoiceTestCase(unittest.TestCase):
             self.assertTransactionEquals(resp_post, ref_transaction)
 
             # GET
-            rv_get = self.app.get('/v1/invoices/' + resp_post['id'])
+            rv_get = self.app.get('/v1/transactions/' + resp_post['id'])
             self.assertJsonContentType(rv_get)
             self.assertEquals(rv_get.status_code, 200)
             resp_get = json.loads(rv_get.data)
@@ -126,9 +126,9 @@ class InvoiceTestCase(unittest.TestCase):
                         ref_transaction_loading_credit_card_other_user]
 
         for t in transactions:
-            self.app.post('/v1/invoices', data=json.dumps(t), content_type='application/json')
+            self.app.post('/v1/transactions', data=json.dumps(t), content_type='application/json')
 
-        rv = self.app.get('/v1/invoices?user=D6F1FF4199954F0EA956DB4709DC227A')
+        rv = self.app.get('/v1/transactions?user=D6F1FF4199954F0EA956DB4709DC227A')
         resp = json.loads(rv.data)
         self.assertEquals(len(resp['transactions']), 3)
         for t in resp['transactions']:
@@ -138,13 +138,13 @@ class InvoiceTestCase(unittest.TestCase):
         # Le problème c'est que les données sont pas bones pour le test.
         # On ne peut fair qu'un test qui soit les prend tous ou aucun.
         date_from_1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_1 = self.app.get('/v1/invoices?from=' + date_from_1)
+        rv_1 = self.app.get('/v1/transactions?from=' + date_from_1)
         resp_1 = json.loads(rv_1.data)
         self.assertEquals(len(resp_1['transactions']), 4)
 
         # We check the transactions issued from tomorrow.
         date_from_2 = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_2 = self.app.get('/v1/invoices?from=' + date_from_2)
+        rv_2 = self.app.get('/v1/transactions?from=' + date_from_2)
         resp_2 = json.loads(rv_2.data)
         self.assertEquals(len(resp_2['transactions']), 0)
 
@@ -161,7 +161,7 @@ class InvoiceTestCase(unittest.TestCase):
             'transaction_type': 'loading_credit_card'
         }
 
-        rv_post = self.app.post('/v1/invoices', data=json.dumps(transaction_bad_amount),
+        rv_post = self.app.post('/v1/transactions', data=json.dumps(transaction_bad_amount),
                                 content_type='application/json')
         self.assertEquals(rv_post.status_code, 400)
 
@@ -230,7 +230,7 @@ class InvoiceTestCase(unittest.TestCase):
                         transaction_no_user, transaction_no_amount]
 
         for ref_transaction in transactions:
-            rv_post = self.app.post('/v1/invoices', data=json.dumps(ref_transaction),
+            rv_post = self.app.post('/v1/transactions', data=json.dumps(ref_transaction),
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)

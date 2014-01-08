@@ -20,6 +20,6 @@ def not_found(error):
 
 api = Api(app)
 
-api.add_resource(TransactionListAPI, '/v1/invoices', endpoint='invoices')
-api.add_resource(TransactionAPI, '/v1/invoices/<string:id>', endpoint='invoice')
-api.add_resource(BalanceAPI, '/v1/user/balance/<string:user_id>', endpoint='balance')
+api.add_resource(TransactionListAPI, '/v1/transactions', endpoint='transactions')
+api.add_resource(TransactionAPI, '/v1/transactions/<string:id>', endpoint='transaction')
+api.add_resource(BalanceAPI, '/v1/user/<string:user_id>/balance', endpoint='balance')
