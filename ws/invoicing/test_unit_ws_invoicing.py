@@ -7,7 +7,7 @@ import json
 from app import db
 import app
 import unittest
-import copy
+from copy import copy
 
 
 class InvoiceTestCase(unittest.TestCase):
@@ -84,10 +84,10 @@ class InvoiceTestCase(unittest.TestCase):
         * help desk
         """
         #Create test data.
-        ref_transaction_printing_grey = copy.copy(self.ref_transaction_printing_both)
+        ref_transaction_printing_grey = copy(self.ref_transaction_printing_both)
         ref_transaction_printing_grey.pop('pages_color')
 
-        ref_transaction_printing_color = copy.copy(self.ref_transaction_printing_both)
+        ref_transaction_printing_color = copy(self.ref_transaction_printing_both)
         ref_transaction_printing_color.pop('pages_grey_level')
         # Le comportement du logiciel est bizarre: il met 0 dans le champs si on lui
         # donne rien. Je sais psa si ca pose problème.
@@ -117,7 +117,7 @@ class InvoiceTestCase(unittest.TestCase):
         We check the number of transactions answered and that they belong
         to the good person.
         """
-        ref_transaction_loading_credit_card_other_user = copy.copy(self.ref_transaction_loading_credit_card)
+        ref_transaction_loading_credit_card_other_user = copy(self.ref_transaction_loading_credit_card)
         ref_transaction_loading_credit_card_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
 
         transactions = [self.ref_transaction_loading_credit_card,
@@ -207,10 +207,10 @@ class InvoiceTestCase(unittest.TestCase):
             'copies': 0
         }
 
-        printing_no_pages2 = copy.copy(printing_no_pages1)
+        printing_no_pages2 = copy(printing_no_pages1)
         printing_no_pages2.pop('pages_color')
 
-        printing_no_pages3 = copy.copy(printing_no_pages1)
+        printing_no_pages3 = copy(printing_no_pages1)
         printing_no_pages3.pop('pages_grey_level')
 
         transaction_no_user = {
@@ -234,3 +234,24 @@ class InvoiceTestCase(unittest.TestCase):
                                     content_type='application/json')
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
+
+
+    def test_balance_ok(self):
+        """
+        POST transactions and checks the balance.
+        """
+
+        loading_t_other_user = copy(self.ref_transaction_loading_credit_card)
+        loading_t_other_user['user'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
+
+        for t in [self.ref_transaction_loading_credit_card,
+                  loading_t_other_user,
+                  self.ref_transaction_printing_both,
+                  self.ref_transaction_help_desk]:
+            self.app.post('/v1/transactions', data=json.dumps(t), content_type='application/json')
+        rv = self.app.get('/v1/user/D6F1FF4199954F0EA956DB4709DC227A/balance')
+        self.assertJsonContentType(rv)
+        self.assertEquals(rv.status_code, 200)
+        resp = json.loads(rv.data)
+        self.assertEquals('D6F1FF4199954F0EA956DB4709DC227A', resp['user_id'])
+        self.assertEquals(7.00, resp['balance'])
