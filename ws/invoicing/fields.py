@@ -14,7 +14,7 @@ class IsoDateTime(fields.Raw):
 
 transaction_fields = {
     'id': fields.String,
-    'user':  fields.String,
+    'user_id':  fields.String,
     'amount': fields.Float,
     'date_time': IsoDateTime,
     'currency': fields.String,

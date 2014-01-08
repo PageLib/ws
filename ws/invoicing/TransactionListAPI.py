@@ -12,7 +12,7 @@ class TransactionListAPI(Resource):
         self.reqparse.add_argument('amount', type=int, location='json')
         self.reqparse.add_argument('transaction_type', type=str, location='json')
         self.reqparse.add_argument('currency', type=str, location='json')
-        self.reqparse.add_argument('user', type=str, location=('json', 'values'))
+        self.reqparse.add_argument('user_id', type=str, location=('json', 'values'))
         self.reqparse.add_argument('copies', type=int, location='json')
         self.reqparse.add_argument('pages_color', type=int, location='json')
         self.reqparse.add_argument('pages_grey_level', type=int, location='json')
@@ -32,8 +32,8 @@ class TransactionListAPI(Resource):
 
         # Optional filters
         args = self.reqparse.parse_args()
-        if args.get('user', None):
-            query = query.filter(Transaction.user == args['user'])
+        if args.get('user_id', None):
+            query = query.filter(Transaction.user_id == args['user_id'])
 
         if args.get('from', None):
             try:
@@ -61,9 +61,9 @@ class TransactionListAPI(Resource):
         transaction_type = self.get_or_412(args, 'transaction_type')
         amount = self.get_or_412(args, 'amount')
         currency = self.get_or_412(args, 'currency')
-        user = self.get_or_412(args, 'user')
+        user_id = self.get_or_412(args, 'user_id')
 
-        if len(user) != 32:
+        if len(user_id) != 32:
             return {'error': 'The user id has not the good length.'}, 412
         if len(currency) != 3:
             return {'error': 'The currency has not the good length.'}, 412
@@ -88,16 +88,16 @@ class TransactionListAPI(Resource):
 
             #TODO check the user balance.
             #TODO check the coherence between the amount and others variables.
-            t = Printing(user, amount, currency, pages_color, pages_grey_level, copies)
+            t = Printing(user_id, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:
                 return {'error': 'Negative amount (should be positive for a printing).'}, 412
 
-            t = LoadingCreditCard(user, amount, currency)
+            t = LoadingCreditCard(user_id, amount, currency)
 
         elif transaction_type == 'help_desk':
-            t = HelpDesk(user, amount, currency)
+            t = HelpDesk(user_id, amount, currency)
 
         # If the type is not good
         else:

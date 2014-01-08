@@ -18,7 +18,7 @@ class BalanceAPI(Resource):
         #TODO check if the User ID exists in the user DB.
 
         balance = db.session.query(func.sum(Transaction.amount).label('sum'))\
-                    .filter(Transaction.user == user_id).scalar()
+                    .filter(Transaction.user_id == user_id).scalar()
 
         return {
             'user_id': user_id,

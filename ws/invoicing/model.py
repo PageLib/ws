@@ -14,7 +14,7 @@ class Transaction(db.Model):
 
     id = db.Column(db.CHAR(32), primary_key=True)
     type = db.Column(db.String(50))
-    user = db.Column(db.CHAR(32), nullable=False)
+    user_id = db.Column(db.CHAR(32), nullable=False)
     amount = db.Column(db.Float(precision=2), nullable=False)
     date_time = db.Column(db.DateTime(), default='')
     currency = db.Column(db.CHAR(3))
@@ -24,11 +24,11 @@ class Transaction(db.Model):
         'polymorphic_identity': 'transaction'
     }
 
-    def __init__(self, user, amount, currency, date_time=None):
+    def __init__(self, user_id, amount, currency, date_time=None):
         #TODO gerer les collisions (on fait un truc global?)
         self.id = uuid4().hex
         #TODO Controle des users
-        self.user = user
+        self.user_id = user_id
         self.amount = amount
         if date_time is None:
             date_time = datetime.utcnow()
@@ -40,7 +40,7 @@ class Transaction(db.Model):
 
     def to_dict(self):
         return {
-            'user': self.user,
+            'user_id': self.user_id,
             'amount': self.amount,
             'date_time': self.date_time,
             'currency': self.currency,
