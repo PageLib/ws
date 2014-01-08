@@ -7,7 +7,8 @@ import unittest
 from copy import copy
 
 os.environ['PAGELIB_WS_INVOICING_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
-from ws.invoicing.app import app, db
+import ws.invoicing.app as invoicing_app
+import ws.invoicing.model as model
 
 
 class InvoiceTestCase(unittest.TestCase):
@@ -36,12 +37,11 @@ class InvoiceTestCase(unittest.TestCase):
     }
 
     def setUp(self):
-        self.app = app.test_client()
-        db.create_all()
+        self.app = invoicing_app.app.test_client()
+        model.Base.metadata.create_all(invoicing_app.db_engine)
 
     def tearDown(self):
-        db.session.remove()
-        db.drop_all()
+        model.Base.metadata.drop_all(invoicing_app.db_engine)
 
     def assertJsonContentType(self, rv):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
