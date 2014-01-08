@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy.ext.declarative import ConcreteBase
 from datetime import datetime
 from app import db
 from uuid import uuid4
