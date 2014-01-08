@@ -1,23 +1,25 @@
 # -*- coding: utf-8 -*-
 
 from datetime import datetime
-from app import db
+from sqlalchemy import Column, CHAR, String, DateTime, ForeignKey, Float, Integer
+from sqlalchemy.ext.declarative import declarative_base
 from uuid import uuid4
 import fields
 
+Base = declarative_base()
 
-class Transaction(db.Model):
+class Transaction(Base):
     """
     Parent class for every transaction.
     """
     __tablename__ = 'transaction'
 
-    id = db.Column(db.CHAR(32), primary_key=True)
-    type = db.Column(db.String(50))
-    user_id = db.Column(db.CHAR(32), nullable=False)
-    amount = db.Column(db.Float(precision=2), nullable=False)
-    date_time = db.Column(db.DateTime(), default='')
-    currency = db.Column(db.CHAR(3))
+    id = Column(CHAR(32), primary_key=True)
+    type = Column(String(50))
+    user_id = Column(CHAR(32), nullable=False)
+    amount = Column(Float(precision=2), nullable=False)
+    date_time = Column(DateTime(), default='')
+    currency = Column(CHAR(3))
 
     __mapper_args__ = {
         'polymorphic_on': type,
@@ -64,10 +66,10 @@ class Printing(Transaction):
         'polymorphic_identity': 'printing'
     }
 
-    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
-    pages_color = db.Column(db.Integer)
-    pages_grey_level = db.Column(db.Integer)
-    copies = db.Column(db.Integer)
+    id = Column(CHAR(32), ForeignKey('transaction.id'), primary_key=True)
+    pages_color = Column(Integer)
+    pages_grey_level = Column(Integer)
+    copies = Column(Integer)
 
     def __init__(self, user, amount, currency, pages_color, pages_grey_level, copies, date_time=None):
         self.amount = amount
@@ -98,7 +100,7 @@ class LoadingCreditCard(Transaction):
         'polymorphic_identity': 'loading_credit_card'
     }
 
-    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
+    id = Column(CHAR(32), ForeignKey('transaction.id'), primary_key=True)
     # On ne sait pas encore ce qu'on aura comme infos ici.
 
 
@@ -111,4 +113,4 @@ class HelpDesk(Transaction):
         'polymorphic_identity': 'help_desk'
     }
 
-    id = db.Column(db.CHAR(32), db.ForeignKey('transaction.id'), primary_key=True)
+    id = Column(CHAR(32), ForeignKey('transaction.id'), primary_key=True)

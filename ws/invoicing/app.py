@@ -1,16 +1,20 @@
 # -*- coding: utf-8 -*-
 import os
-from flask import Flask, make_response, jsonify
+from flask import Flask, make_response, jsonify, g
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
-
 config_path = os.environ.get('PAGELIB_WS_INVOICING_CONFIG',
                              os.path.dirname(__file__) + '/config.py')
 app.config.from_pyfile(config_path)
 
-db = SQLAlchemy(app)
+db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+
+with app.app_context():
+    setattr(g, 'DBSession', sessionmaker(db_engine))
 
 from TransactionListAPI import TransactionListAPI
 from TransactionAPI import TransactionAPI

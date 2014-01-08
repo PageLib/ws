@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
-from flask import abort
+from flask import abort, g
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from app import db
 
 
 class TransactionListAPI(Resource):
@@ -28,7 +27,8 @@ class TransactionListAPI(Resource):
             abort(412, error)
 
     def get(self):
-        query = db.session.query(Transaction)
+        dbs = g.DBSession()()
+        query = dbs.query(Transaction)
 
         # Optional filters
         args = self.reqparse.parse_args()
@@ -103,7 +103,8 @@ class TransactionListAPI(Resource):
         else:
             return {'error': 'Unknown type.'}, 412
 
-        db.session.add(t)
-        db.session.commit()
+        dbs = g.DBSession()
+        dbs.add(t)
+        dbs.commit()
 
         return marshal(t.to_dict(), t.get_fields()), 201
