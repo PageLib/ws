@@ -6,7 +6,7 @@ from model import Printing, LoadingCreditCard, HelpDesk, Transaction
 from app import db
 
 
-class InvoicingListAPI(Resource):
+class TransactionListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('amount', type=int, location='json')
@@ -18,7 +18,7 @@ class InvoicingListAPI(Resource):
         self.reqparse.add_argument('pages_grey_level', type=int, location='json')
         self.reqparse.add_argument('from', type=str, location='values')
         self.reqparse.add_argument('to', type=str, location='values')
-        super(InvoicingListAPI, self).__init__()
+        super(TransactionListAPI, self).__init__()
 
     def get_or_412(self, args, name):
         if args.get(name, None):
