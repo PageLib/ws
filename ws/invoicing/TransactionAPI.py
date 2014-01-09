@@ -1,4 +1,3 @@
-#!flask/bin/python
 # -*- coding: utf-8 -*-
 from flask_restful import Resource, marshal
 from model import Transaction
@@ -27,5 +26,3 @@ class TransactionAPI(Resource):
         except MultipleResultsFound:
             # TODO: log something
             return '', 500
-
-

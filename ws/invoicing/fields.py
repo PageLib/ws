@@ -1,5 +1,4 @@
 from flask_restful import fields
-__author__ = 'Alexis'
 
 
 class IsoDateTime(fields.Raw):
@@ -20,6 +19,7 @@ transaction_fields = {
     'currency': fields.String,
     'transaction_type': fields.String
 }
+
 printing_fields = {
     'pages_color': fields.Integer,
     'pages_grey_level': fields.Integer,
