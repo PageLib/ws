@@ -2,14 +2,15 @@
 
 import os
 import datetime
-import json
 from uuid import uuid4
 from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from ws.common.decorators import json_response
 import model
 import user_data
+from roles import acl
 
 app = Flask(__name__)
 
@@ -23,6 +24,7 @@ DBSession = sessionmaker(db_engine)
 
 
 @app.route('/login', methods=['POST'])
+@json_response
 def login_action():
     # Get credentials passed in the request
     data = request.get_json()
@@ -57,10 +59,11 @@ def login_action():
         'user_id': user['id'],
         'session_id': session.id
     }
-    return json.dumps(resp_data), 200, {'Content-type': 'application/json'}
+    return resp_data, 200
 
 
 @app.route('/sessions/<session_id>/logout', methods=['POST'])
+@json_response
 def logout_action(session_id):
     dbs = DBSession()
     try:
@@ -69,7 +72,7 @@ def logout_action(session_id):
         dbs.delete(session)
         dbs.commit()
 
-        return json.dumps({'result': 'success'}), 200, {'Content-type': 'application/json'}
+        return {'result': 'success'}, 200
 
     except NoResultFound:
         return '', 404
@@ -80,6 +83,7 @@ def logout_action(session_id):
 
 
 @app.route('/sessions/<session_id>', methods=['GET'])
+@json_response
 def session_info_action(session_id):
     dbs = DBSession()
 
@@ -93,7 +97,7 @@ def session_info_action(session_id):
             'refreshed': session.refreshed.isoformat(),
             'expires': session.expires.isoformat()
         }
-        return json.dumps(resp_data), 200, {'Content-type': 'application/json'}
+        return resp_data, 200
 
     except NoResultFound:
         return '', 404
@@ -104,8 +108,24 @@ def session_info_action(session_id):
 
 
 @app.route('/sessions/<session_id>/permission/<action>/<resource>', methods=['GET'])
-def session_permission_action(session_id, action, resource):
-    pass
+@json_response
+def check_permission_action(session_id, action, resource):
+    dbs = DBSession()
+
+    try:
+        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
+
+    except NoResultFound:
+        return '', 404
+
+    except MultipleResultsFound:
+        # TODO: log something
+        return '', 500
+
+    except AssertionError:
+        # action or resource not declared
+        return '', 404
 
 
 if __name__ == '__main__':
