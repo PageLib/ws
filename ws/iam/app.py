@@ -28,25 +28,26 @@ DBSession = sessionmaker(db_engine)
 def login_action():
     # Get credentials passed in the request
     data = request.get_json()
-    login = data['login']
+    print("plop")
+    user_id = data['user_id']
     password = data['password']
 
     # Find a matching user
-    matches = filter(lambda u: u['login'] == login and u['password'] == password, user_data.users)
+    matches = filter(lambda u: u['id'] == user_id and u['password'] == password, user_data.users)
     if len(matches) != 1:
         return '', 412
     user = matches[0]
 
     # Close existing sessions for this user
     dbs = DBSession()
-    opened_sessions = dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
+    opened_sessions = dbs.query(model.Session).filter(model.Session.user_id == user_id).all()
     for s in opened_sessions:
         dbs.delete(s)
 
     # Open the session
     session = model.Session(
         id=uuid4().hex,
-        user_id=user['id'],
+        user_id=user_id,
         opened=datetime.datetime.now(),
         refreshed=datetime.datetime.now(),
         role=user['role']
@@ -56,7 +57,7 @@ def login_action():
 
     # Return session data
     resp_data = {
-        'user_id': user['id'],
+        'user_id': user_id,
         'session_id': session.id
     }
     return resp_data, 200

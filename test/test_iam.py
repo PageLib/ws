@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
-import datetime
-import json
 import unittest
-from copy import copy
 from sqlalchemy import create_engine
 
 os.environ['PAGELIB_WS_IAM_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
@@ -28,7 +25,7 @@ class IamTestCase(unittest.TestCase):
         """
         Logs in a user successfully and checks that
         """
-        login = 'john.doe'
+        user_id = '0dae86f391b940ada87080c43a9ec441'
         password = '1234'
         rv = self.app.post('/login')
 
