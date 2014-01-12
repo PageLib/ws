@@ -28,7 +28,6 @@ DBSession = sessionmaker(db_engine)
 def login_action():
     # Get credentials passed in the request
     data = request.get_json()
-    print("plop")
     user_id = data['user_id']
     password = data['password']
 
@@ -108,13 +107,14 @@ def session_info_action(session_id):
         return '', 500
 
 
-@app.route('/sessions/<session_id>/permission/<action>/<resource>', methods=['GET'])
+@app.route('/sessions/<session_id>/permission/<action>/<resource>/user/<user_id>', methods=['GET'])
 @json_response
-def check_permission_action(session_id, action, resource):
+def check_permission_action(session_id, action, resource, user_id):
     dbs = DBSession()
 
     try:
-        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        session = dbs.query(model.Session).filter(model.Session.id == session_id)\
+                                          .filter(model.Session.user_id == user_id).one()
         return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
 
     except NoResultFound:

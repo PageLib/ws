@@ -12,7 +12,7 @@ class Session(Base):
     """A webservices session."""
     __tablename__ = 'session'
 
-    id = Column(CHAR(32), primary_key=True)
+    id = Column(CHAR(32), primary_key=True)  # used as token
     user_id = Column(CHAR(32))
     opened = Column(DateTime)
     refreshed = Column(DateTime)
