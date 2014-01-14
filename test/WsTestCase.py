@@ -20,6 +20,8 @@ class WsTestCase(unittest.TestCase):
         os.environ['PAGELIB_WS_IAM_CONFIG'] = test_root + '/config_iam.py'
         os.environ['PAGELIB_WS_INVOICING_CONFIG'] = test_root + '/config_invoicing.py'
 
+        super(unittest.TestCase, self).__init__()
+
     def setUp(self):
         self.iam_proc = Popen([self.python_cmd, self.ws_root + '/iam/app.py'])
         self.invoicing_proc = Popen([self.python_cmd, self.ws_root + '/invoicing/app.py'])
