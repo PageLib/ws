@@ -15,8 +15,9 @@ from roles import acl
 app = Flask(__name__)
 
 # Load configuration
-config_path = os.environ.get('PAGELIB_WS_SECURITY_CONFIG', 'config')
-app.config.from_object(config_path)
+config_path = os.environ.get('PAGELIB_WS_IAM_CONFIG',
+                             os.path.dirname(__file__) + '/config.py')
+app.config.from_pyfile(config_path)
 
 # Prepare database connection
 db_engine = create_engine(app.config['DATABASE_URI'])
@@ -130,4 +131,4 @@ def check_permission_action(session_id, action, resource, user_id):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])
