@@ -3,7 +3,10 @@
 import unittest
 import os
 import sys
-from subprocess import Popen
+from subprocess import Popen, PIPE
+import config_iam
+import config_invoicing
+import time
 
 
 class WsTestCase(unittest.TestCase):
@@ -12,7 +15,7 @@ class WsTestCase(unittest.TestCase):
     Spawns WS processes (with test-specific configurations) on setUp and kills them on tearDown.
     """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         test_root = os.path.dirname(__file__)
         self.ws_root = os.path.dirname(__file__) + '/../ws'
         self.python_cmd = sys.executable
@@ -20,11 +23,19 @@ class WsTestCase(unittest.TestCase):
         os.environ['PAGELIB_WS_IAM_CONFIG'] = test_root + '/config_iam.py'
         os.environ['PAGELIB_WS_INVOICING_CONFIG'] = test_root + '/config_invoicing.py'
 
-        super(unittest.TestCase, self).__init__()
+        self.iam_endpoint = 'http://{}:{}'.format(config_iam.HOST, config_iam.PORT)
+        self.invoicing_endpoint = 'http://{}:{}'.format(config_invoicing.HOST, config_invoicing.PORT)
+
+        unittest.TestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
-        self.iam_proc = Popen([self.python_cmd, self.ws_root + '/iam/app.py'])
-        self.invoicing_proc = Popen([self.python_cmd, self.ws_root + '/invoicing/app.py'])
+        self.iam_proc = Popen([self.python_cmd, self.ws_root + '/iam/app.py'], stdout=PIPE, stderr=PIPE)
+        self.invoicing_proc = Popen([self.python_cmd, self.ws_root + '/invoicing/app.py'], stdout=PIPE, stderr=PIPE)
+
+        # Wait for services to be ready
+        time.sleep(0.5)
 
     def tearDown(self):
-        pass
+        self.iam_proc.kill()
+        self.invoicing_proc.kill()
+        os.remove('/tmp/db_invoicing.sqlite')
