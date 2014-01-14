@@ -40,4 +40,4 @@ api.add_resource(TransactionAPI, '/v1/transactions/<string:id>', endpoint='trans
 api.add_resource(BalanceAPI, '/v1/user/<string:user_id>/balance', endpoint='balance')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host=app.config['HOST'], port=app.config['PORT'])
