@@ -4,6 +4,7 @@ from flask import Flask, make_response, jsonify, request
 from flask_restful import Api
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import model
 from TransactionListAPI import TransactionListAPI
 from TransactionAPI import TransactionAPI
 from BalanceAPI import BalanceAPI
@@ -15,6 +16,10 @@ app.config.from_pyfile(config_path)
 
 db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
+
+if app.config['CREATE_SCHEMA_ON_STARTUP']:
+    print 'Creating database schema'
+    model.Base.metadata.create_all(db_engine)
 
 
 @app.before_request
