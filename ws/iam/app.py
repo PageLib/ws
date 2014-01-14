@@ -23,6 +23,10 @@ app.config.from_pyfile(config_path)
 db_engine = create_engine(app.config['DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
 
+if app.config['CREATE_SCHEMA_ON_STARTUP']:
+    print 'Creating database schema'
+    model.Base.metadata.create_all(db_engine)
+
 
 @app.route('/login', methods=['POST'])
 @json_response
