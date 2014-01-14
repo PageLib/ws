@@ -19,6 +19,17 @@ config_path = os.environ.get('PAGELIB_WS_IAM_CONFIG',
                              os.path.dirname(__file__) + '/config.py')
 app.config.from_pyfile(config_path)
 
+# Set up logging
+if app.config['LOG_FILE'] != '':
+    log_handler = logging.FileHandler(app.config['LOG_FILE'])
+else:
+    log_handler = logging.StreamHandler(sys.stdout)
+
+log_handler.setLevel(app.config['LOG_LEVEL'])
+log_handler.setFormatter(logging.Formatter(app.config['LOG_FORMAT']))
+app.logger.setLevel(app.config['LOG_LEVEL'])
+app.logger.addHandler(log_handler)
+
 # Prepare database connection
 db_engine = create_engine(app.config['DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
@@ -135,4 +146,7 @@ def check_permission_action(session_id, action, resource, user_id):
 
 
 if __name__ == '__main__':
+    app.logger.info('Starting service')
     app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])
+
+app.logger.info('Service terminated')
