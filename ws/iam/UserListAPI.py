@@ -23,19 +23,22 @@ class UserListAPI(Resource):
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
+        role = args.get('role', None)
+        #TODO on fait quoi pour le role?
 
         try:
             login = args['login']
             password = args['password']
         except KeyError:
-            return 412
+            return {}, 412
 
         u = model.User(
             id=generate_uuid_for(request.dbs, model.User),
             login=login,
             password_hash=hashlib.sha1(password).hexdigest(),
             last_name=last_name,
-            first_name=first_name
+            first_name=first_name,
+            role=role
         )
         request.dbs.add(u)
         return marshal(u.to_dict(), user_fields), 201

@@ -24,11 +24,11 @@ class UserAPI(Resource):
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
 
         except NoResultFound:
-            return 404
+            return {},404
 
         except MultipleResultsFound:
             # TODO: log something
-            return 500
+            return {},500
         return marshal(user.to_dict(), user_fields)
 
     def put(self, user_id):
@@ -39,11 +39,11 @@ class UserAPI(Resource):
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
 
         except NoResultFound:
-            return 404
+            return {}, 404
 
         except MultipleResultsFound:
             # TODO: log something
-            return 500
+            return {},500
 
         args = self.reqparse.parse_args()
         if args['login'] is not None:
@@ -56,7 +56,6 @@ class UserAPI(Resource):
             user.first_name = args['first_name']
         if args['last_name'] is not None:
             user.last_name = args['last_name']
-        request.dbs.merge(user)
         return marshal(user.to_dict(), user_fields)
 
     def delete(self, user_id):
