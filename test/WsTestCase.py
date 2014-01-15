@@ -29,6 +29,8 @@ class WsTestCase(unittest.TestCase):
         self.iam_db_path = config_iam.DATABASE_URI[len('sqlite:///'):]
         self.invoicing_db_path = config_invoicing.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):]
 
+        self.startup_time = float(os.environ.get('PAGELIB_WS_TEST_STARTUP_TIME', 1))
+
         unittest.TestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
@@ -36,7 +38,7 @@ class WsTestCase(unittest.TestCase):
         self.invoicing_proc = Popen([self.python_cmd, self.ws_root + '/invoicing/app.py'], stdout=PIPE, stderr=PIPE)
 
         # Wait for services to be ready
-        time.sleep(0.5)
+        time.sleep(self.startup_time)
 
     def tearDown(self):
         self.iam_proc.kill()
