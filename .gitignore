@@ -1,3 +1,5 @@
 .idea
 *.pyc
 ws/*/config.py
+log
+tmp
