@@ -4,19 +4,19 @@ import os
 import sys
 import datetime
 import logging
-from uuid import uuid4
 from flask import Flask, request
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from ws.common.decorators import json_response
 import model
-import user_data
 from roles import acl
 from flask_restful import Api
 from UserAPI import UserAPI
 from UserListAPI import UserListAPI
 from ws.common.helpers import generate_uuid_for
+import hashlib
+
 
 app = Flask(__name__)
 
@@ -66,27 +66,32 @@ def login_action():
     data = request.get_json()
     try:
         login = data['login']
-        password = data['password']
+        password_hash = hashlib.sha1(data['password']).hexdigest()
     except KeyError:
         return {'error': 'Missing Keyword \'login\' or \'password\' in json'}, 412
 
     # Find a matching user
-    matches = filter(lambda u: u['login'] == login and u['password'] == password, user_data.users)
-    if len(matches) != 1:
-        return '', 412
-    user = matches[0]
-    
-    opened_sessions = request.dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
+    try:
+        user = request.dbs.query(model.User).filter(model.User.login == login).\
+                                            filter(model.User.password_hash == password_hash).one()
+    except NoResultFound:
+        return {}, 404
+
+    except MultipleResultsFound:
+        # TODO: log something
+        return {}, 500
+
+    opened_sessions = request.dbs.query(model.Session).filter(model.Session.user_id == user.id).all()
     for s in opened_sessions:
         request.dbs.delete(s)
 
     # Open the session
     session = model.Session(
         id=generate_uuid_for(request.dbs, model.Session),
-        user_id=user['id'],
+        user_id=user.id,
         opened=datetime.datetime.now(),
         refreshed=datetime.datetime.now(),
-        role=user['role']
+        role=user.role
     )
     request.dbs.add(session)
 
