@@ -1,4 +1,6 @@
 from flask_restful import fields
+
+
 user_fields = {
     'id': fields.String,
     'login': fields.String,

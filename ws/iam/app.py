@@ -15,6 +15,7 @@ import user_data
 from roles import acl
 from flask_restful import Api
 from UserAPI import UserAPI
+from UserListAPI import UserListAPI
 from ws.common.helpers import generate_uuid_for
 
 app = Flask(__name__)
@@ -56,6 +57,7 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
 
 api = Api(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
+api.add_resource(UserListAPI, '/v1/users', endpoint='users')
 
 @app.route('/login', methods=['POST'])
 @json_response

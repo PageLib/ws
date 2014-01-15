@@ -35,7 +35,7 @@ class User(Base):
 
     id = Column(CHAR(32), primary_key=True)
     login = Column(String(50))
-    password_hash = Column(CHAR(40))  # sha1 length
+    password_hash = Column(CHAR(40))  # sha1
     first_name = Column(String(50))
     last_name = Column(String(50))
     role = Column(String(255))
