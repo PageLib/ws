@@ -13,6 +13,8 @@ from ws.common.decorators import json_response
 import model
 import user_data
 from roles import acl
+from flask_restful import Api
+from UserAPI import UserAPI
 
 app = Flask(__name__)
 
@@ -32,6 +34,17 @@ log_handler.setFormatter(logging.Formatter(app.config['LOG_FORMAT']))
 app.logger.setLevel(app.config['LOG_LEVEL'])
 app.logger.addHandler(log_handler)
 
+# Import of the database
+@app.before_request
+def open_session():
+    setattr(request, 'dbs', DBSession())
+
+
+@app.after_request
+def commit_session(response):
+    request.dbs.commit()
+    return response
+
 # Prepare database connection
 db_engine = create_engine(app.config['DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
@@ -40,6 +53,8 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
     print 'Creating database schema'
     model.Base.metadata.create_all(db_engine)
 
+api = Api(app)
+api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 
 @app.route('/login', methods=['POST'])
 @json_response
@@ -57,12 +72,10 @@ def login_action():
     if len(matches) != 1:
         return '', 412
     user = matches[0]
-
-    # Close existing sessions for this user
-    dbs = DBSession()
-    opened_sessions = dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
+    
+    opened_sessions = request.dbs.query(model.Session).filter(model.Session.user_id == user['id']).all()
     for s in opened_sessions:
-        dbs.delete(s)
+        request.dbs.delete(s)
 
     # Open the session
     session = model.Session(
@@ -72,8 +85,7 @@ def login_action():
         refreshed=datetime.datetime.now(),
         role=user['role']
     )
-    dbs.add(session)
-    dbs.commit()
+    request.dbs.add(session)
 
     # Return session data
     resp_data = {
@@ -86,12 +98,10 @@ def login_action():
 @app.route('/sessions/<session_id>/logout', methods=['POST'])
 @json_response
 def logout_action(session_id):
-    dbs = DBSession()
     try:
         # Find and delete the session
-        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
-        dbs.delete(session)
-        dbs.commit()
+        session = request.dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        request.dbs.delete(session)
 
         return {'result': 'success'}, 200
 
@@ -106,11 +116,9 @@ def logout_action(session_id):
 @app.route('/sessions/<user_id>/<session_id>', methods=['GET'])
 @json_response
 def session_info_action(session_id, user_id):
-    dbs = DBSession()
-
     try:
         # Find the session
-        session = dbs.query(model.Session).filter(model.Session.id == session_id).\
+        session = request.dbs.query(model.Session).filter(model.Session.id == session_id).\
                                            filter(model.Session.user_id == user_id).one()
         resp_data = {
             'session_id': session.id,
@@ -132,10 +140,8 @@ def session_info_action(session_id, user_id):
 @app.route('/sessions/<user_id>/<session_id>/permission/<action>/<resource>', methods=['GET'])
 @json_response
 def check_permission_action(session_id, action, resource, user_id):
-    dbs = DBSession()
-
     try:
-        session = dbs.query(model.Session).filter(model.Session.id == session_id)\
+        session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
                                           .filter(model.Session.user_id == user_id).one()
         return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
 
