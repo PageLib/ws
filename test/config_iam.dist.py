@@ -3,5 +3,8 @@
 HOST = '127.0.0.1'
 PORT = 5001
 DEBUG = False
-DATABASE_URI = 'sqlite:///:memory:'
+
+DATABASE_URI = 'sqlite:///<file>'
+CREATE_SCHEMA_ON_STARTUP = True
+
 SESSION_LIFETIME = 15*60  # in seconds
