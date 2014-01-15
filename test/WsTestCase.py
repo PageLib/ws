@@ -26,6 +26,9 @@ class WsTestCase(unittest.TestCase):
         self.iam_endpoint = 'http://{}:{}'.format(config_iam.HOST, config_iam.PORT)
         self.invoicing_endpoint = 'http://{}:{}'.format(config_invoicing.HOST, config_invoicing.PORT)
 
+        self.iam_db_path = config_iam.DATABASE_URI[len('sqlite:///'):]
+        self.invoicing_db_path = config_invoicing.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):]
+
         unittest.TestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
@@ -38,4 +41,5 @@ class WsTestCase(unittest.TestCase):
     def tearDown(self):
         self.iam_proc.kill()
         self.invoicing_proc.kill()
-        os.remove('/tmp/db_invoicing.sqlite')
+        os.remove(self.iam_db_path)
+        os.remove(self.invoicing_db_path)
