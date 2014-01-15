@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from sqlalchemy import Column, CHAR, String, DateTime
+from sqlalchemy import Column, CHAR, String, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 import config
 
@@ -35,7 +35,17 @@ class User(Base):
 
     id = Column(CHAR(32), primary_key=True)
     login = Column(String(50))
-    password_hash = Column(String(40))  # sha1 length
+    password_hash = Column(CHAR(40))  # sha1 length
     first_name = Column(String(50))
     last_name = Column(String(50))
     role = Column(String(255))
+    deleted = Column(Boolean())
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'login': self.login,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'role': self.role
+        }
