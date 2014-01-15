@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
 from flask import abort, request
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-
+from ws.common.helpers import generate_uuid_for
 
 class TransactionListAPI(Resource):
     def __init__(self):
@@ -87,16 +87,17 @@ class TransactionListAPI(Resource):
 
             #TODO check the user balance.
             #TODO check the coherence between the amount and others variables.
-            t = Printing(user_id, amount, currency, pages_color, pages_grey_level, copies)
+            t = Printing(generate_uuid_for(request, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
+
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:
                 return {'error': 'Negative amount (should be positive for a printing).'}, 412
 
-            t = LoadingCreditCard(user_id, amount, currency)
+            t = LoadingCreditCard(generate_uuid_for(request, Transaction), user_id, amount, currency)
 
         elif transaction_type == 'help_desk':
-            t = HelpDesk(user_id, amount, currency)
+            t = HelpDesk(generate_uuid_for(request, Transaction), user_id, amount, currency)
 
         # If the type is not good
         else:

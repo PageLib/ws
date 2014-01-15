@@ -26,9 +26,9 @@ class Transaction(Base):
         'polymorphic_identity': 'transaction'
     }
 
-    def __init__(self, user_id, amount, currency, date_time=None):
+    def __init__(self, id, user_id, amount, currency, date_time=None):
         #TODO gerer les collisions (on fait un truc global?)
-        self.id = uuid4().hex
+        self.id = id
         #TODO Controle des users
         self.user_id = user_id
         self.amount = amount
@@ -71,12 +71,12 @@ class Printing(Transaction):
     pages_grey_level = Column(Integer)
     copies = Column(Integer)
 
-    def __init__(self, user, amount, currency, pages_color, pages_grey_level, copies, date_time=None):
+    def __init__(self, id, user, amount, currency, pages_color, pages_grey_level, copies, date_time=None):
         self.amount = amount
         self.pages_color = pages_color
         self.pages_grey_level = pages_grey_level
         self.copies = copies
-        super(Printing, self).__init__(user, amount, currency, date_time)
+        super(Printing, self).__init__(id, user, amount, currency, date_time)
 
     def to_dict(self):
         d = super(Printing, self).to_dict()

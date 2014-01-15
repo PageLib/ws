@@ -15,6 +15,7 @@ import user_data
 from roles import acl
 from flask_restful import Api
 from UserAPI import UserAPI
+from ws.common.helpers import generate_uuid_for
 
 app = Flask(__name__)
 
@@ -34,6 +35,10 @@ log_handler.setFormatter(logging.Formatter(app.config['LOG_FORMAT']))
 app.logger.setLevel(app.config['LOG_LEVEL'])
 app.logger.addHandler(log_handler)
 
+# Prepare database connection
+db_engine = create_engine(app.config['DATABASE_URI'])
+DBSession = sessionmaker(db_engine)
+
 # Import of the database
 @app.before_request
 def open_session():
@@ -44,10 +49,6 @@ def open_session():
 def commit_session(response):
     request.dbs.commit()
     return response
-
-# Prepare database connection
-db_engine = create_engine(app.config['DATABASE_URI'])
-DBSession = sessionmaker(db_engine)
 
 if app.config['CREATE_SCHEMA_ON_STARTUP']:
     print 'Creating database schema'
@@ -79,7 +80,7 @@ def login_action():
 
     # Open the session
     session = model.Session(
-        id=uuid4().hex,
+        id=generate_uuid_for(request.dbs, model.Session),
         user_id=user['id'],
         opened=datetime.datetime.now(),
         refreshed=datetime.datetime.now(),
