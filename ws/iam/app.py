@@ -105,12 +105,13 @@ def logout_action(session_id):
 
 @app.route('/sessions/<user_id>/<session_id>', methods=['GET'])
 @json_response
-def session_info_action(session_id):
+def session_info_action(session_id, user_id):
     dbs = DBSession()
 
     try:
         # Find the session
-        session = dbs.query(model.Session).filter(model.Session.id == session_id).one()
+        session = dbs.query(model.Session).filter(model.Session.id == session_id).\
+                                           filter(model.Session.user_id == user_id).one()
         resp_data = {
             'session_id': session.id,
             'user_id': session.user_id,
