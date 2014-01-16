@@ -139,13 +139,15 @@ def session_info_action(session_id, user_id):
             'refreshed': session.refreshed.isoformat(),
             'expires': session.expires.isoformat()
         }
+        app.logger.info('Informed about session {} for user {}'.format(session_id, user_id))
         return resp_data, 200
 
     except NoResultFound:
+        app.logger.warning('Try to check NON existing session {} for user {}'.format(session_id, user_id))
         return '', 404
 
     except MultipleResultsFound:
-        # TODO: log something
+        app.logger.error('Multiple results found on query for session with session:{} and user:{}in v1:logout'.format(session_id, user_id))
         return '', 500
 
 
@@ -155,17 +157,19 @@ def check_permission_action(session_id, action, resource, user_id):
     try:
         session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
                                           .filter(model.Session.user_id == user_id).one()
+        app.logger.info('Permission allowed for action {} on {} for user {} in session {}'.format(action, resource, user_id, session_id))
         return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
 
     except NoResultFound:
+        app.logger.warning('No result found for user {} and session {}').format(user_id, session_id)
         return '', 404
 
     except MultipleResultsFound:
-        # TODO: log something
+        app.logger.error('Multiple results found for user {} and session {}').format(user_id, session_id)
         return '', 500
 
     except AssertionError:
-        # action or resource not declared
+        app.logger.error('Request on non existing resource:{} or action:{}'.format(resource, action))
         return '', 404
 
 
