@@ -6,7 +6,8 @@ from fields import user_fields
 from ws.common.helpers import generate_uuid_for
 import hashlib
 from roles import check_role
-
+from sqlalchemy import exists
+from sqlalchemy import and_, not_
 
 class UserListAPI(Resource):
     def __init__(self):
@@ -36,6 +37,11 @@ class UserListAPI(Resource):
             app.logger.warning('Request on POST UserListAPI with missing login or password in json')
             return {}, 412
 
+        # We check if another non deleted user has the same login
+        user_same_login_exists = request.dbs.query(exists().where(and_(model.User.login == login,
+                                                                   not_(model.User.deleted)))).scalar()
+        if user_same_login_exists:
+            return {'error': 'User with the same login exists.'}, 412
         user_id = generate_uuid_for(request.dbs, model.User)
         u = model.User(
             id=user_id,
@@ -43,7 +49,8 @@ class UserListAPI(Resource):
             password_hash=hashlib.sha1(password).hexdigest(),
             last_name=last_name,
             first_name=first_name,
-            role=role
+            role=role,
+            deleted=False
         )
         request.dbs.add(u)
         app.logger.info('User {} (uuid: {}) created'.format(login, user_id))

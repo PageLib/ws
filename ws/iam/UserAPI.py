@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 import hashlib
 from roles import check_role
-
+from sqlalchemy import not_
 
 class UserAPI(Resource):
     def __init__(self):
@@ -23,7 +23,8 @@ class UserAPI(Resource):
         GET the user with the good user_id.
         """
         try:
-            user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
+            user = request.dbs.query(model.User).filter(model.User.id == user_id)\
+                                                .filter(not_(model.User.deleted)).one()
             app.logger.info('Successful request on user {}'.format(user_id))
         except NoResultFound:
             app.logger.warning('Request on non existing user {}'.format(user_id))
@@ -39,8 +40,9 @@ class UserAPI(Resource):
         Updates a user.
         """
         try:
-            user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
-            app.logger.info('Request on user {}', )
+            user = request.dbs.query(model.User).filter(not_(model.User.deleted))\
+                                                .filter(model.User.id == user_id).one()
+            app.logger.info('Request on user {}'.format(user_id))
         except NoResultFound:
             app.logger.warning('PUT Request on non existing user {}'.format(user_id))
             return {}, 404
@@ -73,7 +75,7 @@ class UserAPI(Resource):
         """
         try:
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
-            request.dbs.delete(user)
+            user.deleted = True
         except NoResultFound:
             app.logger.warning('DELETE Request on non existing user {}'.format(user_id))
             return 404

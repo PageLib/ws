@@ -12,7 +12,7 @@ from ws.common.decorators import json_response
 import model
 from roles import acl
 from flask_restful import Api
-
+from sqlalchemy import not_
 
 app = Flask(__name__)
 
@@ -74,8 +74,9 @@ def login_action():
 
     # Find a matching user
     try:
-        user = request.dbs.query(model.User).filter(model.User.login == login).\
-                                            filter(model.User.password_hash == password_hash).one()
+        user = request.dbs.query(model.User).filter(model.User.login == login)\
+                                            .filter(model.User.password_hash == password_hash)\
+                                            .filter(not_(model.User.deleted)).one()
     except NoResultFound:
         app.logger.warning('Try to log unsuccessfully for user login {}'.format(login))
         return {}, 404
@@ -132,7 +133,8 @@ def session_info_action(session_id, user_id):
     try:
         # Find the session
         session = request.dbs.query(model.Session).filter(model.Session.id == session_id).\
-                                           filter(model.Session.user_id == user_id).one()
+                                                   filter(model.User.deleted).\
+                                                   filter(model.Session.user_id == user_id).one()
         resp_data = {
             'session_id': session.id,
             'user_id': session.user_id,
@@ -157,7 +159,8 @@ def session_info_action(session_id, user_id):
 def check_permission_action(session_id, action, resource, user_id):
     try:
         session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
-                                          .filter(model.Session.user_id == user_id).one()
+                                                  .filter(model.Session.user_id == user_id)\
+                                                  .filter(not_(model.User.deleted)).one()
         app.logger.info('Permission allowed for action {} on {} for user {} in session {}'.format(action, resource, user_id, session_id))
         return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
 
