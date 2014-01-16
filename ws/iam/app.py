@@ -12,13 +12,14 @@ from ws.common.decorators import json_response
 import model
 from roles import acl
 from flask_restful import Api
-from UserAPI import UserAPI
-from UserListAPI import UserListAPI
-from ws.common.helpers import generate_uuid_for
-import hashlib
 
 
 app = Flask(__name__)
+
+from UserAPI import UserAPI
+from UserListAPI import UserListAPI
+from ws.common.helpers import generate_uuid_for
+
 
 # Load configuration
 config_path = os.environ.get('PAGELIB_WS_IAM_CONFIG',
@@ -76,11 +77,11 @@ def login_action():
         user = request.dbs.query(model.User).filter(model.User.login == login).\
                                             filter(model.User.password_hash == password_hash).one()
     except NoResultFound:
-        app.logger.warning('Try to log unsuccessfully for user {}'.format(login))
+        app.logger.warning('Try to log unsuccessfully for user login {}'.format(login))
         return {}, 404
 
     except MultipleResultsFound:
-        app.logger.error('Multiple results found on query for user: {} and password_hash: {} in /v1/login'.format(login, password_hash))
+        app.logger.error('Multiple results on query for user: {} and password_hash: {} in /v1/login'.format(login, password_hash))
         return {}, 500
 
     opened_sessions = request.dbs.query(model.Session).filter(model.Session.user_id == user.id).all()
@@ -102,7 +103,7 @@ def login_action():
         'user_id': user.id,
         'session_id': session.id
     }
-    app.logger.info('User {} logged in session {}'.format(login, session.id))
+    app.logger.info('User {} (uuid: {}) logged in session {}'.format(login, user.id,  session.id))
     return resp_data, 200
 
 
@@ -117,7 +118,7 @@ def logout_action(session_id):
         return {'result': 'success'}, 200
 
     except NoResultFound:
-        app.logger.warning('Try to log out on non existing log: {}'.format(session_id))
+        app.logger.warning('Try to log out on non existing session: {} in v1:logout'.format(session_id))
         return '', 404
 
     except MultipleResultsFound:
@@ -169,7 +170,7 @@ def check_permission_action(session_id, action, resource, user_id):
         return '', 500
 
     except AssertionError:
-        app.logger.error('Request on non existing resource:{} or action:{}'.format(resource, action))
+        app.logger.error('Request on non existing resource: {} or action: {}'.format(resource, action))
         return '', 404
 
 
