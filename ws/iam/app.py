@@ -14,6 +14,7 @@ from roles import acl
 from flask_restful import Api
 from sqlalchemy import not_
 
+
 app = Flask(__name__)
 
 from UserAPI import UserAPI
@@ -59,6 +60,7 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
 api = Api(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')
+
 
 @app.route('/v1/login', methods=['POST'])
 @json_response
