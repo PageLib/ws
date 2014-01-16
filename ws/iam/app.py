@@ -99,7 +99,7 @@ def login_action():
 
     # Return session data
     resp_data = {
-        'login': login,
+        'user_id': user.id,
         'session_id': session.id
     }
     app.logger.info('User {} logged in session {}'.format(login, session.id))
