@@ -132,9 +132,10 @@ def logout_action(session_id):
 def session_info_action(session_id, user_id):
     try:
         # Find the session
-        session = request.dbs.query(model.Session).filter(model.Session.id == session_id).\
-                                                   filter(model.User.deleted).\
-                                                   filter(model.Session.user_id == user_id).one()
+        session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
+                                                  .filter(not_(model.User.deleted))\
+                                                  .filter(model.User.id == model.Session.user_id)\
+                                                  .filter(model.Session.user_id == user_id).one()
         resp_data = {
             'session_id': session.id,
             'user_id': session.user_id,
@@ -160,7 +161,9 @@ def check_permission_action(session_id, action, resource, user_id):
     try:
         session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
                                                   .filter(model.Session.user_id == user_id)\
+                                                  .filter(model.User.id == model.Session.user_id)\
                                                   .filter(not_(model.User.deleted)).one()
+
         app.logger.info('Permission allowed for action {} on {} for user {} in session {}'.format(action, resource, user_id, session_id))
         return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
 
