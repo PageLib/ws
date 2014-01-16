@@ -87,17 +87,18 @@ class TransactionListAPI(Resource):
 
             #TODO check the user balance.
             #TODO check the coherence between the amount and others variables.
-            t = Printing(generate_uuid_for(request, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
+            t = Printing(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
 
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:
                 return {'error': 'Negative amount (should be positive for a printing).'}, 412
 
-            t = LoadingCreditCard(generate_uuid_for(request, Transaction), user_id, amount, currency)
+            t = LoadingCreditCard(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency)
 
         elif transaction_type == 'help_desk':
-            t = HelpDesk(generate_uuid_for(request, Transaction), user_id, amount, currency)
+            id = generate_uuid_for(request.dbs, Transaction)
+            t = HelpDesk(id, user_id, amount, currency)
 
         # If the type is not good
         else:
