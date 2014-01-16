@@ -4,9 +4,10 @@ from rbac.acl import Registry
 
 acl = Registry()
 
-acl.add_role('admin')
-acl.add_role('manager')
-acl.add_role('user')
+roles = ['admin', 'user', 'manager']
+
+for role in roles:
+    acl.add_role(role)
 
 # Accounts resources
 # ...
@@ -21,3 +22,12 @@ acl.allow('user', 'create', 'own_transaction')
 
 # Documents resources
 # ...
+
+
+def check_role(role):
+    """
+    This part allows us to check if the posted role is correct or not.
+    """
+    if role in roles or role is None:
+        return True
+    return False

@@ -5,6 +5,7 @@ from flask import request
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 import hashlib
+from roles import check_role
 
 class UserAPI(Resource):
     def __init__(self):
@@ -24,11 +25,11 @@ class UserAPI(Resource):
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
 
         except NoResultFound:
-            return {},404
+            return {}, 404
 
         except MultipleResultsFound:
             # TODO: log something
-            return {},500
+            return {}, 500
         return marshal(user.to_dict(), user_fields)
 
     def put(self, user_id):
@@ -43,7 +44,7 @@ class UserAPI(Resource):
 
         except MultipleResultsFound:
             # TODO: log something
-            return {},500
+            return {}, 500
 
         args = self.reqparse.parse_args()
         if args['login'] is not None:
@@ -51,7 +52,11 @@ class UserAPI(Resource):
         if args['password'] is not None:
             user.password_hash = hashlib.sha1(args['password'])
         if args['role'] is not None:
-            user.role = args['role']
+            role = args['role']
+            if check_role(role):
+                user.role = role
+            else:
+                return {'error': 'Role \'' + role + '\' is not allowed'}, 412
         if args['first_name'] is not None:
             user.first_name = args['first_name']
         if args['last_name'] is not None:

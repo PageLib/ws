@@ -66,7 +66,7 @@ def login_action():
     data = request.get_json()
     try:
         login = data['login']
-        password_hash = hashlib.sha1(data['password']).hexdigest()
+        password_hash = data['password_hash']
     except KeyError:
         return {'error': 'Missing Keyword \'login\' or \'password\' in json'}, 412
 

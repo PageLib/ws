@@ -5,6 +5,7 @@ from flask import request
 from fields import user_fields
 from ws.common.helpers import generate_uuid_for
 import hashlib
+from roles import check_role
 
 
 class UserListAPI(Resource):
@@ -24,7 +25,8 @@ class UserListAPI(Resource):
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
         role = args.get('role', None)
-        #TODO on fait quoi pour le role?
+        if not check_role(role):
+            return {'error': 'Role \'' + role + '\' is not allowed'}, 412
 
         try:
             login = args['login']
