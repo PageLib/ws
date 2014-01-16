@@ -68,17 +68,19 @@ def login_action():
         login = data['login']
         password_hash = data['password_hash']
     except KeyError:
-        return {'error': 'Missing Keyword \'login\' or \'password\' in json'}, 412
+        app.logger.error('Missing parameters login or password_hash in json in /v1/login')
+        return {'error': 'Missing Keyword \'login\' or \'password_hash\' in json'}, 412
 
     # Find a matching user
     try:
         user = request.dbs.query(model.User).filter(model.User.login == login).\
                                             filter(model.User.password_hash == password_hash).one()
     except NoResultFound:
+        app.logger.warning('Try to log unsuccessfully for user {}'.format(login))
         return {}, 404
 
     except MultipleResultsFound:
-        # TODO: log something
+        app.logger.error('Multiple results found on query for user: {} and password_hash: {} in /v1/login'.format(login, password_hash))
         return {}, 500
 
     opened_sessions = request.dbs.query(model.Session).filter(model.Session.user_id == user.id).all()
@@ -100,6 +102,7 @@ def login_action():
         'login': login,
         'session_id': session.id
     }
+    app.logger.info('User {} logged in session {}'.format(login, session.id))
     return resp_data, 200
 
 
@@ -110,14 +113,15 @@ def logout_action(session_id):
         # Find and delete the session
         session = request.dbs.query(model.Session).filter(model.Session.id == session_id).one()
         request.dbs.delete(session)
-
+        app.logger.info('Session {} finished.'.format(session_id))
         return {'result': 'success'}, 200
 
     except NoResultFound:
+        app.logger.warning('Try to log out on non existing log: {}'.format(session_id))
         return '', 404
 
     except MultipleResultsFound:
-        # TODO: log something
+        app.logger.error('Multiple results found on query for session with id:{} in v1:logout'.format(session_id))
         return '', 500
 
 
