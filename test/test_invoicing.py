@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import os
 import datetime
 import json
-import unittest
+from WsTestCase import WsTestCase
 from copy import copy
-
-os.environ['PAGELIB_WS_INVOICING_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
-import ws.invoicing.app as invoicing_app
-import ws.invoicing.model as model
+import requests
 
 
-class InvoiceTestCase(unittest.TestCase):
+class InvoiceTestCase(WsTestCase):
 
     ref_transaction_loading_credit_card = {
         'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
@@ -35,13 +31,6 @@ class InvoiceTestCase(unittest.TestCase):
         'currency': 'EUR',
         'transaction_type': 'help_desk'
     }
-
-    def setUp(self):
-        self.app = invoicing_app.app.test_client()
-        model.Base.metadata.create_all(invoicing_app.db_engine)
-
-    def tearDown(self):
-        model.Base.metadata.drop_all(invoicing_app.db_engine)
 
     def assertJsonContentType(self, rv):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
@@ -96,18 +85,19 @@ class InvoiceTestCase(unittest.TestCase):
 
         for ref_transaction in transactions:
             # POST
-            rv_post = self.app.post('/v1/transactions', data=json.dumps(ref_transaction),
-                                    content_type='application/json')
+            rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
+                                    data=json.dumps(ref_transaction),
+                                    headers={'Content-type': 'application/json'})
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 201, ref_transaction)
-            resp_post = json.loads(rv_post.data)
+            resp_post = rv_post.json()
             self.assertTransactionEquals(resp_post, ref_transaction)
 
             # GET
-            rv_get = self.app.get('/v1/transactions/' + resp_post['id'])
+            rv_get = requests.get(self.invoicing_endpoint + '/v1/transactions/' + resp_post['id'])
             self.assertJsonContentType(rv_get)
             self.assertEquals(rv_get.status_code, 200)
-            resp_get = json.loads(rv_get.data)
+            resp_get = rv_get.json()
             self.assertTransactionEquals(resp_post, resp_get)
 
     def test_invoice_list_search(self):
@@ -125,10 +115,11 @@ class InvoiceTestCase(unittest.TestCase):
                         ref_transaction_loading_credit_card_other_user]
 
         for t in transactions:
-            self.app.post('/v1/transactions', data=json.dumps(t), content_type='application/json')
+            requests.post(self.invoicing_endpoint + '/v1/transactions',
+                          data=json.dumps(t), headers={'Content-type': 'application/json'})
 
-        rv = self.app.get('/v1/transactions?user_id=D6F1FF4199954F0EA956DB4709DC227A')
-        resp = json.loads(rv.data)
+        rv = requests.get(self.invoicing_endpoint + '/v1/transactions?user_id=D6F1FF4199954F0EA956DB4709DC227A')
+        resp = rv.json()
         self.assertEquals(len(resp['transactions']), 3)
         for t in resp['transactions']:
             self.assertEquals(t['user_id'], 'D6F1FF4199954F0EA956DB4709DC227A')
@@ -137,14 +128,14 @@ class InvoiceTestCase(unittest.TestCase):
         # Le problème c'est que les données sont pas bones pour le test.
         # On ne peut fair qu'un test qui soit les prend tous ou aucun.
         date_from_1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_1 = self.app.get('/v1/transactions?from=' + date_from_1)
-        resp_1 = json.loads(rv_1.data)
+        rv_1 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_1)
+        resp_1 = rv_1.json()
         self.assertEquals(len(resp_1['transactions']), 4)
 
         # We check the transactions issued from tomorrow.
         date_from_2 = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_2 = self.app.get('/v1/transactions?from=' + date_from_2)
-        resp_2 = json.loads(rv_2.data)
+        rv_2 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_2)
+        resp_2 = rv_2.json()
         self.assertEquals(len(resp_2['transactions']), 0)
 
     def test_invoice_list_error_400(self):
@@ -160,8 +151,9 @@ class InvoiceTestCase(unittest.TestCase):
             'transaction_type': 'loading_credit_card'
         }
 
-        rv_post = self.app.post('/v1/transactions', data=json.dumps(transaction_bad_amount),
-                                content_type='application/json')
+        rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
+                                data=json.dumps(transaction_bad_amount),
+                                headers={'Content-type': 'application/json'})
         self.assertEquals(rv_post.status_code, 400)
 
     def test_invoice_list_error_412(self):
@@ -229,11 +221,11 @@ class InvoiceTestCase(unittest.TestCase):
                         transaction_no_user, transaction_no_amount]
 
         for ref_transaction in transactions:
-            rv_post = self.app.post('/v1/transactions', data=json.dumps(ref_transaction),
-                                    content_type='application/json')
+            rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
+                                    data=json.dumps(ref_transaction),
+                                    headers={'Content-type': 'application/json'})
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
-
 
     def test_balance_ok(self):
         """
@@ -247,10 +239,12 @@ class InvoiceTestCase(unittest.TestCase):
                   loading_t_other_user,
                   self.ref_transaction_printing_both,
                   self.ref_transaction_help_desk]:
-            self.app.post('/v1/transactions', data=json.dumps(t), content_type='application/json')
-        rv = self.app.get('/v1/user/D6F1FF4199954F0EA956DB4709DC227A/balance')
+            requests.post(self.invoicing_endpoint + '/v1/transactions',
+                          data=json.dumps(t), headers={'Content-type': 'application/json'})
+
+        rv = requests.get(self.invoicing_endpoint + '/v1/user/D6F1FF4199954F0EA956DB4709DC227A/balance')
         self.assertJsonContentType(rv)
         self.assertEquals(rv.status_code, 200)
-        resp = json.loads(rv.data)
+        resp = rv.json()
         self.assertEquals('D6F1FF4199954F0EA956DB4709DC227A', resp['user_id'])
         self.assertEquals(7.00, resp['balance'])
