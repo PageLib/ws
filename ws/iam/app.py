@@ -59,7 +59,7 @@ api = Api(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')
 
-@app.route('/login', methods=['POST'])
+@app.route('/v1/login', methods=['POST'])
 @json_response
 def login_action():
     # Get credentials passed in the request
@@ -103,7 +103,7 @@ def login_action():
     return resp_data, 200
 
 
-@app.route('/sessions/<session_id>/logout', methods=['POST'])
+@app.route('/v1/sessions/<session_id>/logout', methods=['POST'])
 @json_response
 def logout_action(session_id):
     try:
@@ -121,7 +121,7 @@ def logout_action(session_id):
         return '', 500
 
 
-@app.route('/sessions/<user_id>/<session_id>', methods=['GET'])
+@app.route('/v1/sessions/<user_id>/<session_id>', methods=['GET'])
 @json_response
 def session_info_action(session_id, user_id):
     try:
@@ -145,7 +145,7 @@ def session_info_action(session_id, user_id):
         return '', 500
 
 
-@app.route('/sessions/<user_id>/<session_id>/permission/<action>/<resource>', methods=['GET'])
+@app.route('/v1/sessions/<user_id>/<session_id>/permission/<action>/<resource>', methods=['GET'])
 @json_response
 def check_permission_action(session_id, action, resource, user_id):
     try:
