@@ -10,14 +10,14 @@ import requests
 class InvoiceTestCase(WsTestCase):
 
     ref_transaction_loading_credit_card = {
-        'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
         'amount': 5.0,
         'currency': 'EUR',
         'transaction_type': 'loading_credit_card'
     }
 
     ref_transaction_printing_both = {
-        'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
         'amount': -3.0,
         'currency': 'EUR',
         'transaction_type': 'printing',
@@ -26,7 +26,7 @@ class InvoiceTestCase(WsTestCase):
         'copies': 3
     }
     ref_transaction_help_desk = {
-        'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+        'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
         'amount': 5.0,
         'currency': 'EUR',
         'transaction_type': 'help_desk'
@@ -107,7 +107,7 @@ class InvoiceTestCase(WsTestCase):
         to the good person.
         """
         ref_transaction_loading_credit_card_other_user = copy(self.ref_transaction_loading_credit_card)
-        ref_transaction_loading_credit_card_other_user['user_id'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
+        ref_transaction_loading_credit_card_other_user['user_id'] = 'd6f1ff419anotheruserdb4709dc227a'
 
         transactions = [self.ref_transaction_loading_credit_card,
                         self.ref_transaction_printing_both,
@@ -118,11 +118,11 @@ class InvoiceTestCase(WsTestCase):
             requests.post(self.invoicing_endpoint + '/v1/transactions',
                           data=json.dumps(t), headers={'Content-type': 'application/json'})
 
-        rv = requests.get(self.invoicing_endpoint + '/v1/transactions?user_id=D6F1FF4199954F0EA956DB4709DC227A')
+        rv = requests.get(self.invoicing_endpoint + '/v1/transactions?user_id=d6f1ff4199954f0ea956db4709dc227a')
         resp = rv.json()
         self.assertEquals(len(resp['transactions']), 3)
         for t in resp['transactions']:
-            self.assertEquals(t['user_id'], 'D6F1FF4199954F0EA956DB4709DC227A')
+            self.assertEquals(t['user_id'], 'd6f1ff4199954f0ea956db4709dc227a')
 
         #We check the transactions issued from today.
         # Le problème c'est que les données sont pas bones pour le test.
@@ -145,7 +145,7 @@ class InvoiceTestCase(WsTestCase):
         """
 
         transaction_bad_amount = {
-            'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
             'amount': 'a',
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
@@ -166,21 +166,21 @@ class InvoiceTestCase(WsTestCase):
         * no amount
         """
         transaction_bad_user = {
-            'user_id': 'D6F1FF4199954F0EA9509DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc2',
             'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
 
         transaction_bad_type = {
-            'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
             'amount': 5.0,
             'currency': 'EUR',
             'transaction_type': 'plop'
         }
 
         printing_no_copies = {
-            'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
             'amount': -3.0,
             'currency': 'EUR',
             'transaction_type': 'printing',
@@ -189,7 +189,7 @@ class InvoiceTestCase(WsTestCase):
             'copies': 0
         }
         printing_no_pages1 = {
-            'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
             'amount': -3.0,
             'currency': 'EUR',
             'transaction_type': 'printing',
@@ -211,7 +211,7 @@ class InvoiceTestCase(WsTestCase):
         }
 
         transaction_no_amount = {
-            'user_id': 'D6F1FF4199954F0EA956DB4709DC227A',
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
@@ -233,7 +233,7 @@ class InvoiceTestCase(WsTestCase):
         """
 
         loading_t_other_user = copy(self.ref_transaction_loading_credit_card)
-        loading_t_other_user['user_id'] = 'D6F1FF419ANOTHERAUSERB4709DC227A'
+        loading_t_other_user['user_id'] = 'd6f1ff419anotheruserdb4709dc227a'
 
         for t in [self.ref_transaction_loading_credit_card,
                   loading_t_other_user,
@@ -242,9 +242,9 @@ class InvoiceTestCase(WsTestCase):
             requests.post(self.invoicing_endpoint + '/v1/transactions',
                           data=json.dumps(t), headers={'Content-type': 'application/json'})
 
-        rv = requests.get(self.invoicing_endpoint + '/v1/user/D6F1FF4199954F0EA956DB4709DC227A/balance')
+        rv = requests.get(self.invoicing_endpoint + '/v1/user/d6f1ff4199954f0ea956db4709dc227a/balance')
         self.assertJsonContentType(rv)
         self.assertEquals(rv.status_code, 200)
         resp = rv.json()
-        self.assertEquals('D6F1FF4199954F0EA956DB4709DC227A', resp['user_id'])
+        self.assertEquals('d6f1ff4199954f0ea956db4709dc227a', resp['user_id'])
         self.assertEquals(7.00, resp['balance'])
