@@ -7,6 +7,7 @@ from fields import user_fields
 import hashlib
 from roles import check_role
 
+
 class UserAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
