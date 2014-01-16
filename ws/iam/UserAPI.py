@@ -23,12 +23,13 @@ class UserAPI(Resource):
         """
         try:
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
-
+            app.logger.info('Successful request on user {}'.format(user_id))
         except NoResultFound:
+            app.logger.warning('Request on non existing user {}'.format(user_id))
             return {}, 404
 
         except MultipleResultsFound:
-            # TODO: log something
+            app.logger.error('Multiple results found for user {}'.format(user_id))
             return {}, 500
         return marshal(user.to_dict(), user_fields)
 
@@ -38,12 +39,13 @@ class UserAPI(Resource):
         """
         try:
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
-
+            app.logger.info('Request on user {}', )
         except NoResultFound:
+            app.logger.warning('PUT Request on non existing user {}'.format(user_id))
             return {}, 404
 
         except MultipleResultsFound:
-            # TODO: log something
+            app.logger.error('Multiple results found for user {} on PUT UserAPI'.format(user_id))
             return {}, 500
 
         args = self.reqparse.parse_args()
@@ -61,6 +63,7 @@ class UserAPI(Resource):
             user.first_name = args['first_name']
         if args['last_name'] is not None:
             user.last_name = args['last_name']
+        app.logger.info('User {} successfully updated'.format(user_id))
         return marshal(user.to_dict(), user_fields)
 
     def delete(self, user_id):
@@ -71,10 +74,14 @@ class UserAPI(Resource):
             user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
             request.dbs.delete(user)
         except NoResultFound:
+            app.logger.warning('DELETE Request on non existing user {}'.format(user_id))
             return 404
 
         except MultipleResultsFound:
-            # TODO: log something
+            app.logger.error('Multiple results found for user {} on DELETE UserAPI'.format(user_id))
             return 500
+        app.logger.info('User {} deleted'.format(user_id))
         return {'user_deleted': True}, 200
 
+
+from app import app
