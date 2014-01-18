@@ -215,8 +215,9 @@ class InvoiceTestCase(WsTestCase):
             rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
                                     data=json.dumps(ref_transaction),
                                     headers={'Content-type': 'application/json'})
-            self.assertEquals(rv_post.status_code, 412)
+
             self.assertJsonContentType(rv_post)
+            self.assertEquals(rv_post.status_code, 412)
             print(rv_post.json())
 
     def test_balance_ok(self):
