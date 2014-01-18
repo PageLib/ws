@@ -12,6 +12,9 @@ class EntityListAPI(Resource):
         super(EntityListAPI, self).__init__()
 
     def get(self):
+        """
+        Search for entity by name.
+        """
         query = request.dbs.query(model.Entity)
 
         #optional filters

@@ -50,4 +50,7 @@ class EntityAPI(Resource):
         app.logger.info('Entity {} updated'.format(entity_id))
         return marshal(entity.to_dict(), entity_fields)
 
+    def delete(self):
+        pass
+        #Quelles consequences pour les user?
 from app import app
