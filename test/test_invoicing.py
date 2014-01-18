@@ -206,18 +206,19 @@ class InvoiceTestCase(WsTestCase):
         }
 
         transactions = [transaction_bad_user, transaction_bad_type,
-                        transaction_bad_type, printing_no_copies,
-                        printing_no_pages2, printing_no_pages3,
-                        transaction_no_user, transaction_no_amount,
-                        transaction_bad_amount]
-
+                        printing_no_copies, printing_no_pages2,
+                        printing_no_pages3, transaction_no_user,
+                        transaction_no_amount, transaction_bad_amount]
+        i = 0
         for ref_transaction in transactions:
+            print(transactions[i])
+            i += 1
             rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
                                     data=json.dumps(ref_transaction),
                                     headers={'Content-type': 'application/json'})
 
-            self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
+            self.assertJsonContentType(rv_post)
             print(rv_post.json())
 
     def test_balance_ok(self):

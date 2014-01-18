@@ -12,4 +12,5 @@ class MyApi(Api):
         if code == 400:
             r = self.make_response({'error': data}, 412)
             r.headers['Content-type'] = 'application/json'
+            return r
         return super(Api, self).handle_error(e)
