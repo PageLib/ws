@@ -5,7 +5,7 @@ from flask import request
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 import hashlib
-from roles import check_role
+from roles import roles
 from sqlalchemy import not_
 
 class UserAPI(Resource):
@@ -58,7 +58,7 @@ class UserAPI(Resource):
             user.password_hash = hashlib.sha1(args['password'])
         if args['role'] is not None:
             role = args['role']
-            if check_role(role):
+            if role in roles:
                 user.role = role
             else:
                 return {'error': 'Role \'' + role + '\' is not allowed'}, 412
