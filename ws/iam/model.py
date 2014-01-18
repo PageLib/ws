@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import datetime
-from sqlalchemy import Column, CHAR, String, DateTime, Boolean
+from sqlalchemy import Column, CHAR, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 import config
 
 Base = declarative_base()
@@ -40,6 +41,8 @@ class User(Base):
     last_name = Column(String(50))
     role = Column(String(255))
     deleted = Column(Boolean())
+    entity_id = Column(CHAR(32), ForeignKey('entity.id'))
+    department = relationship('Entity')
 
     def to_dict(self):
         return {
