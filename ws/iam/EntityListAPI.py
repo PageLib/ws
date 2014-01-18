@@ -8,8 +8,21 @@ from ws.iam.fields import entity_fields
 class EntityListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('name', type=str, location='json')
+        self.reqparse.add_argument('name', type=str, location=('json', 'values'))
         super(EntityListAPI, self).__init__()
+
+    def get(self):
+        query = request.dbs.query(model.Entity)
+
+        #optional filters
+        args = self.reqparse.parse_args()
+        if args.get('name', None):
+            name_search = '%' + args['name'] + '%'
+            query = query.filter(model.Entity.name.like(name_search))
+
+        return {'entities': map(lambda e: marshal(e.to_dict(), entity_fields), query.all())}
+
+
 
     def post(self):
         """
@@ -19,7 +32,7 @@ class EntityListAPI(Resource):
         try:
             name = args['name']
         except KeyError:
-            app.logger.info('Request on POST EntityListAPI without name in JSON')
+            app.logger.warning('Request on POST EntityListAPI without name in JSON')
             return {}, 412
         print 'plop'
         id = generate_uuid_for(request.dbs)
