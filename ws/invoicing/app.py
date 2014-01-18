@@ -3,7 +3,7 @@ import os
 import sys
 import logging
 from flask import Flask, make_response, jsonify, request
-from flask_restful import Api
+from ws.common.MyAPI import MyApi
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import model
@@ -54,7 +54,7 @@ def not_found(error):
     return make_response(jsonify({'error': error}), 412)
 
 # Set up RESTful API resources
-api = Api(app)
+api = MyApi(app)
 api.add_resource(TransactionListAPI, '/v1/transactions', endpoint='transactions')
 api.add_resource(TransactionAPI, '/v1/transactions/<string:id>', endpoint='transaction')
 api.add_resource(BalanceAPI, '/v1/user/<string:user_id>/balance', endpoint='balance')

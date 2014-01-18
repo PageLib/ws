@@ -2,3 +2,4 @@ Flask==0.10
 Flask-RESTful==0.2.8
 Flask-SQLAlchemy==1.0
 simple-rbac==0.1.1
+requests==2.2.0

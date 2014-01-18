@@ -33,7 +33,7 @@ class InvoiceTestCase(WsTestCase):
     }
 
     def assertJsonContentType(self, rv):
-        self.assertEquals(rv.headers['Content-type'], 'application/json')
+        self.assertEquals('application/json', rv.headers['Content-type'], rv)
 
     def assertTransactionEquals(self, t1, t2):
         """
@@ -138,24 +138,6 @@ class InvoiceTestCase(WsTestCase):
         resp_2 = rv_2.json()
         self.assertEquals(len(resp_2['transactions']), 0)
 
-    def test_invoice_list_error_400(self):
-        """
-        POST transaction which are not correct and expects a 400 status.
-        * non integer amount
-        """
-
-        transaction_bad_amount = {
-            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
-            'amount': 'a',
-            'currency': 'EUR',
-            'transaction_type': 'loading_credit_card'
-        }
-
-        rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
-                                data=json.dumps(transaction_bad_amount),
-                                headers={'Content-type': 'application/json'})
-        self.assertEquals(rv_post.status_code, 400)
-
     def test_invoice_list_error_412(self):
         """
         POST transactions which are not correct. (412 status).
@@ -164,6 +146,7 @@ class InvoiceTestCase(WsTestCase):
         * 3 printing with no copies
         * no user
         * no amount
+        * non integer amount
         """
         transaction_bad_user = {
             'user_id': 'd6f1ff4199954f0ea956db4709dc2',
@@ -215,17 +198,26 @@ class InvoiceTestCase(WsTestCase):
             'currency': 'EUR',
             'transaction_type': 'loading_credit_card'
         }
+        transaction_bad_amount = {
+            'user_id': 'd6f1ff4199954f0ea956db4709dc227a',
+            'amount': 'a',
+            'currency': 'EUR',
+            'transaction_type': 'loading_credit_card'
+        }
+
         transactions = [transaction_bad_user, transaction_bad_type,
-                        transaction_bad_type,printing_no_copies,
+                        transaction_bad_type, printing_no_copies,
                         printing_no_pages2, printing_no_pages3,
-                        transaction_no_user, transaction_no_amount]
+                        transaction_no_user, transaction_no_amount,
+                        transaction_bad_amount]
 
         for ref_transaction in transactions:
             rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
                                     data=json.dumps(ref_transaction),
                                     headers={'Content-type': 'application/json'})
-            self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 412)
+            self.assertJsonContentType(rv_post)
+            print(rv_post.json())
 
     def test_balance_ok(self):
         """
