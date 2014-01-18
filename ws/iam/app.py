@@ -19,6 +19,7 @@ app = Flask(__name__)
 
 from UserAPI import UserAPI
 from UserListAPI import UserListAPI
+from EntityListAPI import EntityListAPI
 from ws.common.helpers import generate_uuid_for
 
 
@@ -60,6 +61,7 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
 api = Api(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')
+api.add_resource(EntityListAPI, '/v1/entities', endpoint='entities')
 
 
 @app.route('/v1/login', methods=['POST'])

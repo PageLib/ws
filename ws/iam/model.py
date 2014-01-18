@@ -49,3 +49,16 @@ class User(Base):
             'last_name': self.last_name,
             'role': self.role
         }
+
+
+class Entity(Base):
+    __tablename__ = 'entity'
+
+    id = Column(CHAR(32), primary_key=True)
+    name = Column(String(50))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+        }

@@ -8,3 +8,8 @@ user_fields = {
     'last_name': fields.String,
     'role': fields.String
 }
+
+entity_fields = {
+    'id': fields.String,
+    'name': fields.String,
+}
