@@ -26,9 +26,8 @@ class UserListAPI(Resource):
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
         role = args.get('role', None)
-        if role not in roles or roles is None:
-            msg_log = 'Request on POST UserListAPI for non existing role {}d'
-            app.logger.warning(msg_log.format(role))
+        if role not in roles or role is None:
+            app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
 
         try:
