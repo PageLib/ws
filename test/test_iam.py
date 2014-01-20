@@ -1,32 +1,33 @@
 # -*- coding: utf-8 -*-
 
-import os
-import unittest
-from sqlalchemy import create_engine
-
-os.environ['PAGELIB_WS_IAM_CONFIG'] = os.path.dirname(__file__) + '/config_test.py'
-import ws.iam.app as iam_app
-import ws.iam.model as model
+from WsTestCase import WsTestCase
 
 
-class IamTestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = iam_app.app.test_client()
-        db_engine = create_engine(self.app.config['DATABASE_URI'])
-        model.Base.metadata.create_all(db_engine)
-
-    def tearDown(self):
-        model.Base.metadata.drop_all(iam_app.db_engine)
-
+class IamTestCase(WsTestCase):
     def assertJsonContentType(self, rv):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
 
-    def test_login_successful(self):
-        """
-        Logs in a user successfully and checks that
-        """
-        user_id = '0dae86f391b940ada87080c43a9ec441'
-        password = '1234'
-        rv = self.app.post('/login')
+    def test_create_user(self):
+        """Create and GET a user."""
+        pass
 
+    def test_edit_user(self):
+        """Create and modify a user."""
+        pass
 
+    def test_create_user_twice(self):
+        """Try to create the same user twice, assert failure on the second trial."""
+        pass
+
+    def test_delete_recreate_user(self):
+        """Create and delete a user, assert that the user no longer exists, and can be created
+            again."""
+        pass
+
+    def test_create_login_logout(self):
+        """Create a user and test login and logout actions."""
+        pass
+
+    def test_create_login_permission(self):
+        """Create a user, login, and test permissions."""
+        pass
