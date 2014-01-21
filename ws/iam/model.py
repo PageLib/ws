@@ -27,7 +27,7 @@ class Session(Base):
 
     @property
     def is_active(self):
-        return self.expires > datetime.now()
+        return self.expires > datetime.datetime.now()
 
 
 class User(Base):
