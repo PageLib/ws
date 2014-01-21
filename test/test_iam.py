@@ -81,10 +81,6 @@ class IamTestCase(WsTestCase):
             again."""
         pass
 
-    def test_create_login_logout(self):
-        """Create a user and test login and logout actions."""
-        pass
-
-    def test_create_login_permission(self):
-        """Create a user, login, and test permissions."""
+    def test_create_login_permission_logout(self):
+        """Create a user, login, test permissions, and logout."""
         pass
