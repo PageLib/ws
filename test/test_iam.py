@@ -16,12 +16,11 @@ class IamTestCase(WsTestCase):
     }
 
     def assertJsonAndStatus(self, rv, status):
-        if rv.text is not None and rv.text != '':
-            self.assertEquals(rv.headers['Content-type'], 'application/json')
+        self.assertEquals(rv.headers['Content-type'], 'application/json')
         self.assertEquals(status, rv.status_code)
 
-    def test_create_user(self):
-        """Create and GET a user."""
+    def test_create_user_twice(self):
+        """Try to create the same user twice, the first works and we assert failure on the second trial."""
         rv_post = requests.post(self.iam_endpoint + '/v1/users',
                                 data=json.dumps(self.ref_user),
                                 headers={'Content-type': 'application/json'})
@@ -37,6 +36,11 @@ class IamTestCase(WsTestCase):
 
         rv_get = requests.get(self.iam_endpoint + '/v1/users/' + user_id)
         self.assertJsonAndStatus(rv_get, 200)
+
+        rv_post_2 = requests.post(self.iam_endpoint + '/v1/users',
+                                  data=json.dumps(self.ref_user),
+                                  headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_post_2, 412)
 
     def test_edit_user(self):
         """Create and modify a user."""
@@ -73,18 +77,6 @@ class IamTestCase(WsTestCase):
             self.assertEquals(json_get[field], put_data[field],
                               'mismatch on field ' + field + ' in GET response')
 
-    def test_create_user_twice(self):
-        """Try to create the same user twice, assert failure on the second trial."""
-        rv_post_1 = requests.post(self.iam_endpoint + '/v1/users',
-                                  data=json.dumps(self.ref_user),
-                                  headers={'Content-type': 'application/json'})
-        self.assertJsonAndStatus(rv_post_1, 201)
-
-        rv_post_2 = requests.post(self.iam_endpoint + '/v1/users',
-                                  data=json.dumps(self.ref_user),
-                                  headers={'Content-type': 'application/json'})
-        self.assertJsonAndStatus(rv_post_2, 412)
-
     def test_delete_recreate_user(self):
         """Create and delete a user, assert that the user no longer exists, and can be created
             again."""
@@ -98,7 +90,7 @@ class IamTestCase(WsTestCase):
         self.assertJsonAndStatus(rv_delete, 200)
 
         rv_get = requests.get(self.iam_endpoint + '/v1/users/' + user_id)
-        self.assertJsonAndStatus(rv_get, 404)
+        self.assertEquals(rv_get.status_code, 404)
 
         rv_recreate = requests.post(self.iam_endpoint + '/v1/users',
                                     data=json.dumps(self.ref_user),
