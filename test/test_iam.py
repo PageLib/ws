@@ -15,12 +15,23 @@ class IamTestCase(WsTestCase):
         'role': 'user'
     }
 
+    def create_entity(self):
+        entity = {'name': 'ECP'}
+
+        rv_post = requests.post(self.iam_endpoint + '/v1/entities',
+                                data=json.dumps(entity),
+                                headers={'Content-type': 'application/json'})
+        rv_post.json()
+        entity_id = rv_post.json()['id']
+        self.ref_user['entity_id'] = entity_id
+
     def assertJsonAndStatus(self, rv, status):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
         self.assertEquals(status, rv.status_code)
 
     def test_create_user_twice(self):
         """Try to create the same user twice, the first works and we assert failure on the second trial."""
+        self.create_entity()
         rv_post = requests.post(self.iam_endpoint + '/v1/users',
                                 data=json.dumps(self.ref_user),
                                 headers={'Content-type': 'application/json'})
@@ -31,6 +42,7 @@ class IamTestCase(WsTestCase):
         for field in ('login', 'last_name', 'first_name', 'role'):
             self.assertIn(field, json_post, 'missing field ' + field)
             self.assertEquals(json_post[field], self.ref_user[field], 'mismatch on field ' + field)
+            #TODO tester entity id
 
         user_id = json_post['id']
 
@@ -44,6 +56,7 @@ class IamTestCase(WsTestCase):
 
     def test_edit_user(self):
         """Create and modify a user."""
+        self.create_entity()
         rv_post = requests.post(self.iam_endpoint + '/v1/users',
                                 data=json.dumps(self.ref_user),
                                 headers={'Content-type': 'application/json'})
@@ -80,6 +93,7 @@ class IamTestCase(WsTestCase):
     def test_delete_recreate_user(self):
         """Create and delete a user, assert that the user no longer exists, and can be created
             again."""
+        self.create_entity()
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
                                   headers={'Content-type': 'application/json'})
@@ -99,6 +113,7 @@ class IamTestCase(WsTestCase):
 
     def test_create_login_permission_logout(self):
         """Create a user, login, test permissions, and logout."""
+        self.create_entity()
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
                                   headers={'Content-type': 'application/json'})
