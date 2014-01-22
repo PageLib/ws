@@ -9,6 +9,7 @@ from roles import check_role
 from sqlalchemy import exists
 from sqlalchemy import and_, not_
 
+
 class UserListAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()

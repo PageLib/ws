@@ -74,7 +74,9 @@ class UserAPI(Resource):
         Deletes a user.
         """
         try:
-            user = request.dbs.query(model.User).filter(model.User.id == user_id).one()
+            user = request.dbs.query(model.User).filter(model.User.id == user_id)\
+                                                .filter(not_(model.User.deleted))\
+                                                .one()
             user.deleted = True
         except NoResultFound:
             app.logger.warning('DELETE Request on non existing user {}'.format(user_id))

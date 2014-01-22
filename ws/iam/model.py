@@ -59,6 +59,7 @@ class Entity(Base):
 
     id = Column(CHAR(32), primary_key=True)
     name = Column(String(50))
+    deleted = Column(Boolean())
 
     def to_dict(self):
         return {

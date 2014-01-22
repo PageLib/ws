@@ -3,6 +3,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from flask import request
 import model
 from ws.iam.fields import entity_fields
+from sqlalchemy import not_
 
 
 class EntityAPI(Resource):
@@ -16,7 +17,8 @@ class EntityAPI(Resource):
         Return an entity.
         """
         try:
-            entity = request.dbs.query(model.Entity).filter(model.Entity.id == entity_id).one()
+            entity = request.dbs.query(model.Entity).filter(model.Entity.id == entity_id)\
+                                                    .filter(not_(model.Entity.deleted)).one()
         except NoResultFound:
             app.logger.warning('GET Request on non existing entity {}'.format(entity_id))
             return {}, 404
@@ -32,7 +34,8 @@ class EntityAPI(Resource):
         Updates an entity.
         """
         try:
-            entity = request.dbs.query(model.Entity).filter(model.Entity.id == entity_id).one()
+            entity = request.dbs.query(model.Entity).filter(model.Entity.id == entity_id)\
+                                                    .filter(not_(model.Entity.deleted)).one()
         except NoResultFound:
             app.logger.warning('PUT Request on non existing entity {}'.format(entity_id))
             return {}, 404
@@ -46,11 +49,24 @@ class EntityAPI(Resource):
         if name is not None:
             entity.name = name
 
-        request.dbs.add(entity)
         app.logger.info('Entity {} updated'.format(entity_id))
         return marshal(entity.to_dict(), entity_fields)
 
-    def delete(self):
-        pass
-        #Quelles consequences pour les user?
+    def delete(self, entity_id):
+        """
+        Soft-delete the entity called.
+        """
+        try:
+            entity = request.dbs.query(model.Entity).filter(model.Entity.id == entity_id)\
+                                                    .filter(not_(model.Entity.deleted)).one()
+        except NoResultFound:
+            app.logger.warning('DELETE Request on non existing entity {}'.format(entity_id))
+            return {}, 404
+
+        except MultipleResultsFound:
+            app.logger.error('Multiple results found for entity {} on DELETE EntityAPI'.format(entity_id))
+            return {}, 500
+        entity.deleted = True
+        return {'entity_deleted': True}, 200
+
 from app import app
