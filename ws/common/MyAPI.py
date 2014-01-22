@@ -13,4 +13,4 @@ class MyApi(Api):
             r = self.make_response({'error': data}, 412)
             r.headers['Content-type'] = 'application/json'
             return r
-        return super(Api, self).handle_error(e)
+        return Api.handle_error(self, e)
