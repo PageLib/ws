@@ -50,7 +50,8 @@ class User(Base):
             'login': self.login,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'role': self.role
+            'role': self.role,
+            'entity_id': self.entity_id
         }
 
 

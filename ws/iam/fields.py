@@ -6,7 +6,8 @@ user_fields = {
     'login': fields.String,
     'first_name': fields.String,
     'last_name': fields.String,
-    'role': fields.String
+    'role': fields.String,
+    'entity_id': fields.String
 }
 
 entity_fields = {

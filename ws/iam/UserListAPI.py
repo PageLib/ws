@@ -18,6 +18,7 @@ class UserListAPI(Resource):
         self.reqparse.add_argument('role', type=str, location='json')
         self.reqparse.add_argument('last_name', type=str, location='json')
         self.reqparse.add_argument('first_name', type=str, location='json')
+        self.reqparse.add_argument('entity_id', type=str, location='json')
         super(UserListAPI, self).__init__()
 
     def post(self):
@@ -31,11 +32,11 @@ class UserListAPI(Resource):
             app.logger.warning('Request on POST UserListAPI for non existing role {}'.format(role))
             return {'error': 'Role \'' + role + '\' is not allowed'}, 412
 
-        try:
-            login = args['login']
-            password = args['password']
-        except KeyError:
-            app.logger.warning('Request on POST UserListAPI with missing login or password in json')
+        login = args['login']
+        password = args['password']
+        entity_id = args['entity_id']
+        if not (login and password and entity_id):
+            app.logger.warning('Request on POST UserListAPI with missing login, entity_id or password in json')
             return {}, 412
 
         # We check if another non deleted user has the same login
@@ -43,6 +44,13 @@ class UserListAPI(Resource):
                                                                    not_(model.User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
+
+        # Check that the entity exists
+        if not request.dbs.query(exists().where(model.Entity.id == entity_id)
+                                         .where(not_(model.Entity.deleted))).scalar():
+            app.logger.warning('Request on POST UserListAPI with unknown or deleted entity_id : ' + entity_id)
+            return {'error': 'Unknown entity_id : {}'.format(entity_id)}
+
         user_id = generate_uuid_for(request.dbs, model.User)
         u = model.User(
             id=user_id,
@@ -51,7 +59,8 @@ class UserListAPI(Resource):
             last_name=last_name,
             first_name=first_name,
             role=role,
-            deleted=False
+            deleted=False,
+            entity_id=entity_id
         )
         request.dbs.add(u)
         app.logger.info('User {} (uuid: {}) created'.format(login, user_id))
