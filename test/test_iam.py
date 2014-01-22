@@ -105,6 +105,14 @@ class IamTestCase(WsTestCase):
         self.assertJsonAndStatus(rv_create, 201)
         user_id = rv_create.json()['id']
 
+        # Log in with bad password
+        rv_login_failed = requests.post(
+            self.iam_endpoint + '/v1/login',
+            data=json.dumps({'login': self.ref_user['login'],
+                             'password_hash': hashlib.sha1('qwerty').hexdigest()}),
+            headers={'Content-type': 'application/json'})
+        self.assertEquals(rv_login_failed.status_code, 404)
+
         # Log in
         rv_login = requests.post(
             self.iam_endpoint + '/v1/login',
