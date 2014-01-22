@@ -24,8 +24,10 @@ class UserAPI(Resource):
         GET the user with the good user_id.
         """
         try:
-            user = request.dbs.query(model.User).filter(model.User.id == user_id)\
-                                                .filter(not_(model.User.deleted)).one()
+            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
+                                                                   .filter(not_(model.User.deleted))\
+                                                                   .filter(not_(model.Entity.deleted)).one()
+
             app.logger.info('Successful request on user {}'.format(user_id))
         except NoResultFound:
             app.logger.warning('Request on non existing user {}'.format(user_id))
@@ -41,8 +43,9 @@ class UserAPI(Resource):
         Updates a user.
         """
         try:
-            user = request.dbs.query(model.User).filter(not_(model.User.deleted))\
-                                                .filter(model.User.id == user_id).one()
+            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
+                                                                   .filter(not_(model.User.deleted))\
+                                                                   .filter(not_(model.Entity.deleted)).one()
             app.logger.info('Request on user {}'.format(user_id))
         except NoResultFound:
             app.logger.warning('PUT Request on non existing user {}'.format(user_id))
@@ -77,9 +80,9 @@ class UserAPI(Resource):
         Deletes a user.
         """
         try:
-            user = request.dbs.query(model.User).filter(model.User.id == user_id)\
-                                                .filter(not_(model.User.deleted))\
-                                                .one()
+            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
+                                                                   .filter(not_(model.User.deleted))\
+                                                                   .filter(not_(model.Entity.deleted)).one()
             user.deleted = True
         except NoResultFound:
             app.logger.warning('DELETE Request on non existing user {}'.format(user_id))
