@@ -8,6 +8,7 @@ import hashlib
 from roles import roles
 from sqlalchemy import not_
 
+
 class UserAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
