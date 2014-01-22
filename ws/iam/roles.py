@@ -22,12 +22,3 @@ acl.allow('user', 'create', 'own_transaction')
 
 # Documents resources
 # ...
-
-
-def check_role(role):
-    """
-    This part allows us to check if the posted role is correct or not.
-    """
-    if role in roles or role is None:
-        return True
-    return False

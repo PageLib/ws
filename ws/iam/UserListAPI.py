@@ -5,7 +5,7 @@ from flask import request
 from fields import user_fields
 from ws.common.helpers import generate_uuid_for
 import hashlib
-from roles import check_role
+from roles import roles
 from sqlalchemy import exists
 from sqlalchemy import and_, not_
 
@@ -28,9 +28,9 @@ class UserListAPI(Resource):
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
         role = args.get('role', None)
-        if not check_role(role):
-            app.logger.warning('Request on POST UserListAPI for non existing role {}'.format(role))
-            return {'error': 'Role \'' + role + '\' is not allowed'}, 412
+        if role not in roles or role is None:
+            app.logger.warning('Request on POST UserListAPI for non existing or missing role')
+            return {'error': 'Role POSTed is not allowed'}, 412
 
         login = args['login']
         password = args['password']

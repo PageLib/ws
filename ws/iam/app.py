@@ -142,6 +142,12 @@ def session_info_action(session_id, user_id):
                                                   .filter(not_(model.User.deleted))\
                                                   .filter(model.User.id == model.Session.user_id)\
                                                   .filter(model.Session.user_id == user_id).one()
+
+        # Check that the session is still active
+        if not session.is_active:
+            app.logger.info('Session {} expired, unable to get session data'.format(session_id))
+            return '', 404
+
         resp_data = {
             'session_id': session.id,
             'user_id': session.user_id,
@@ -170,8 +176,19 @@ def check_permission_action(session_id, action, resource, user_id):
                                                   .filter(model.User.id == model.Session.user_id)\
                                                   .filter(not_(model.User.deleted)).one()
 
-        app.logger.info('Permission allowed for action {} on {} for user {} in session {}'.format(action, resource, user_id, session_id))
-        return {'allowed': acl.is_allowed(session.role, action, resource)}, 200
+        # Check that the session is still active
+        if not session.is_active:
+            app.logger.info('Session {} expired, unable to check permission'.format(session_id))
+            return '', 404
+
+        # Refresh the session
+        session.refreshed = datetime.datetime.now()
+
+        # Check permission
+        allowed = acl.is_allowed(session.role, action, resource)
+        app.logger.info('Permission {} for action {} on {} for user {} in session {}'.format(
+            'granted' if allowed else 'denied', action, resource, user_id, session_id))
+        return {'allowed': allowed}, 200
 
     except NoResultFound:
         app.logger.warning('No result found for user {} and session {}').format(user_id, session_id)
