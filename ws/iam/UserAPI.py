@@ -16,6 +16,7 @@ class UserAPI(Resource):
         self.reqparse.add_argument('role', type=str, location='json')
         self.reqparse.add_argument('first_name', type=str, location='json')
         self.reqparse.add_argument('last_name', type=str, location='json')
+        self.reqparse.add_argument('entity_id', type=str, location='json')
         super(UserAPI, self).__init__()
 
     def get(self, user_id):
@@ -54,6 +55,8 @@ class UserAPI(Resource):
         args = self.reqparse.parse_args()
         if args['login'] is not None:
             user.login = args['login']
+        if args['entity_id'] is not None:
+            user.entity_id = args['entity_id']
         if args['password'] is not None:
             user.password_hash = hashlib.sha1(args['password'])
         if args['role'] is not None:
