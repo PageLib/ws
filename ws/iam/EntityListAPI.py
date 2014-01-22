@@ -26,7 +26,6 @@ class EntityListAPI(Resource):
         return {'entities': map(lambda e: marshal(e.to_dict(), entity_fields), query.all())}
 
 
-
     def post(self):
         """
         Creates a new entity.
@@ -37,8 +36,7 @@ class EntityListAPI(Resource):
         except KeyError:
             app.logger.warning('Request on POST EntityListAPI without name in JSON')
             return {}, 412
-        print 'plop'
-        id = generate_uuid_for(request.dbs)
+        id = generate_uuid_for(request.dbs, model.Entity)
         e = model.Entity(
             id=id,
             name=name
