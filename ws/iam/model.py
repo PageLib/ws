@@ -26,8 +26,8 @@ class Session(Base):
         return self.refreshed + datetime.timedelta(seconds=config.SESSION_LIFETIME)
 
     @property
-    def isActive(self):
-        return self.expires > datetime.now()
+    def is_active(self):
+        return self.expires > datetime.datetime.now()
 
 
 class User(Base):
