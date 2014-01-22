@@ -21,7 +21,7 @@ from UserAPI import UserAPI
 from UserListAPI import UserListAPI
 from EntityListAPI import EntityListAPI
 from EntityAPI import EntityAPI
-from ws.common.helpers import generate_uuid_for
+from ws.common.helpers import generate_uuid_for, get_or_412
 
 
 # Load configuration
@@ -71,12 +71,8 @@ api.add_resource(EntityListAPI, '/v1/entities', endpoint='entities')
 def login_action():
     # Get credentials passed in the request
     data = request.get_json()
-    try:
-        login = data['login']
-        password_hash = data['password_hash']
-    except KeyError:
-        app.logger.error('Missing parameters login or password_hash in json in /v1/login')
-        return {'error': 'Missing Keyword \'login\' or \'password_hash\' in json'}, 412
+    login = get_or_412(data, 'login')
+    password_hash = get_or_412(data, 'password_hash')
 
     # Find a matching user
     try:

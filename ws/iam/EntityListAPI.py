@@ -4,6 +4,7 @@ import model
 from ws.common.helpers import generate_uuid_for
 from ws.iam.fields import entity_fields
 from sqlalchemy import not_
+from ws.common.helpers import get_or_412
 
 
 class EntityListAPI(Resource):
@@ -31,11 +32,7 @@ class EntityListAPI(Resource):
         Creates a new entity.
         """
         args = self.reqparse.parse_args()
-        try:
-            name = args['name']
-        except KeyError:
-            app.logger.warning('Request on POST EntityListAPI without name in JSON')
-            return {}, 412
+        name = get_or_412(args, 'name')
         id = generate_uuid_for(request.dbs, model.Entity)
         e = model.Entity(
             id=id,

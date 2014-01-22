@@ -8,6 +8,7 @@ import hashlib
 from roles import roles
 from sqlalchemy import exists
 from sqlalchemy import and_, not_
+from ws.common.helpers import get_or_412
 
 
 class UserListAPI(Resource):
@@ -32,12 +33,9 @@ class UserListAPI(Resource):
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
 
-        login = args['login']
-        password = args['password']
-        entity_id = args['entity_id']
-        if not (login and password and entity_id):
-            app.logger.warning('Request on POST UserListAPI with missing login, entity_id or password in json')
-            return {}, 412
+        login = get_or_412(args, 'login')
+        password = get_or_412(args, 'password')
+        entity_id = get_or_412(args, 'entity_id')
 
         # We check if another non deleted user has the same login
         user_same_login_exists = request.dbs.query(exists().where(and_(model.User.login == login,
