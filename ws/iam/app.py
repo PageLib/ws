@@ -181,7 +181,7 @@ def check_permission_action(session_id, action, resource, user_id):
         session.refreshed = datetime.datetime.now()
 
         # Check permission
-        allowed = acl.is_allowed(session.role, action, resource)
+        allowed = bool(acl.is_allowed(session.role, action, resource))
         app.logger.info('Permission {} for action {} on {} for user {} in session {}'.format(
             'granted' if allowed else 'denied', action, resource, user_id, session_id))
         return {'allowed': allowed}, 200
