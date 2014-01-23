@@ -39,10 +39,9 @@ class IamTestCase(WsTestCase):
         json_post = rv_post.json()
 
         # check returned user's fields
-        for field in ('login', 'last_name', 'first_name', 'role'):
+        for field in ('login', 'last_name', 'first_name', 'role', 'entity_id'):
             self.assertIn(field, json_post, 'missing field ' + field)
             self.assertEquals(json_post[field], self.ref_user[field], 'mismatch on field ' + field)
-            #TODO tester entity id
 
         user_id = json_post['id']
 
@@ -167,3 +166,31 @@ class IamTestCase(WsTestCase):
         # Check that the session no longer exists
         rv_session = requests.get(self.iam_endpoint + '/v1/sessions/' + session_id)
         self.assertEquals(404, rv_session.status_code)
+
+    def test_put_delete_entity(self):
+        self.create_entity()
+
+        # Edit the entity, then get it and assert the name was modified
+        entity_id = self.ref_user['entity_id']
+        rv_put = requests.put(self.iam_endpoint + '/v1/entities/' + entity_id,
+                              data=json.dumps({'name': 'Centrale-Supelec'}),
+                              headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_put, 200)
+
+        rv_get_entity = requests.get(self.iam_endpoint + '/v1/entities/' + entity_id)
+        self.assertJsonAndStatus(rv_get_entity, 200)
+        self.assertEquals('Centrale-Supelec', rv_get_entity.json()['name'])
+
+        # Add a user
+        rv_create = requests.post(self.iam_endpoint + '/v1/users',
+                                  data=json.dumps(self.ref_user),
+                                  headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_create, 201)
+        user_id = rv_create.json()['id']
+
+        # Delete the entity and assert the user no longer exists
+        rv_delete = requests.delete(self.iam_endpoint + '/v1/entities/' + entity_id)
+        self.assertEquals(200, rv_delete.status_code)
+
+        rv_get_user = requests.get(self.iam_endpoint + '/v1/users/' + user_id)
+        self.assertEquals(404, rv_get_user.status_code)
