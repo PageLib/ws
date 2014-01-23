@@ -199,6 +199,25 @@ def check_permission_action(session_id, action, resource, user_id):
         return '', 404
 
 
+@app.route('/v1/sessions/expired', methods=['DELETE'])
+@json_response
+def delete_expired_sessions_action():
+    # Request to be made from local server only
+    if request.remote_addr not in ('127.0.0.1', '::1'):
+        app.logger.error('Refused request to delete expired sessions from external IP ' + request.remote_addr)
+        return '', 404
+
+    sessions = request.dbs.query(model.Session).all()
+
+    for session in sessions:
+        if not session.is_active:
+            request.dbs.delete(session)
+            app.logger.info('Deleted expired session {} (user id {})'.format(session.id,
+                                                                             session.user_id))
+
+    return '', 200
+
+
 if __name__ == '__main__':
     app.logger.info('Starting service')
     app.run(host=app.config['HOST'], port=app.config['PORT'], debug=app.config['DEBUG'])
