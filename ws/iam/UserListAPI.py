@@ -8,23 +8,19 @@ import hashlib
 from roles import roles
 from sqlalchemy import exists
 from sqlalchemy import and_, not_
-from ws.common.helpers import get_or_412
 
 
 class UserListAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('login', type=str, location='json')
-        self.reqparse.add_argument('password', type=str, location='json')
-        self.reqparse.add_argument('role', type=str, location='json')
-        self.reqparse.add_argument('last_name', type=str, location='json')
-        self.reqparse.add_argument('first_name', type=str, location='json')
-        self.reqparse.add_argument('entity_id', type=str, location='json')
-        super(UserListAPI, self).__init__()
 
     def post(self):
         """Creates a new user"""
-        args = self.reqparse.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument('login', type=str, location='json')
+        parser.add_argument('password', type=str, location='json')
+        parser.add_argument('role', type=str, location='json')
+        parser.add_argument('last_name', type=str, location='json')
+        parser.add_argument('first_name', type=str, location='json')
+        args = parser.parse_args()
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
@@ -33,22 +29,18 @@ class UserListAPI(Resource):
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
 
-        login = get_or_412(args, 'login')
-        password = get_or_412(args, 'password')
-        entity_id = get_or_412(args, 'entity_id')
+        try:
+            login = args['login']
+            password = args['password']
+        except KeyError:
+            app.logger.warning('Request on POST UserListAPI with missing login or password in json')
+            return {}, 412
 
         # We check if another non deleted user has the same login
         user_same_login_exists = request.dbs.query(exists().where(and_(model.User.login == login,
                                                                    not_(model.User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
-
-        # Check that the entity exists
-        if not request.dbs.query(exists().where(model.Entity.id == entity_id)
-                                         .where(not_(model.Entity.deleted))).scalar():
-            app.logger.warning('Request on POST UserListAPI with unknown or deleted entity_id : ' + entity_id)
-            return {'error': 'Unknown entity_id : {}'.format(entity_id)}
-
         user_id = generate_uuid_for(request.dbs, model.User)
         u = model.User(
             id=user_id,
@@ -57,8 +49,7 @@ class UserListAPI(Resource):
             last_name=last_name,
             first_name=first_name,
             role=role,
-            deleted=False,
-            entity_id=entity_id
+            deleted=False
         )
         request.dbs.add(u)
         app.logger.info('User {} (uuid: {}) created'.format(login, user_id))
