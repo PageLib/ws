@@ -9,19 +9,18 @@ from roles import roles
 from sqlalchemy import exists
 from sqlalchemy import and_, not_
 
+
 class UserListAPI(Resource):
-    def __init__(self):
-        self.reqparse = reqparse.RequestParser()
-        self.reqparse.add_argument('login', type=str, location='json')
-        self.reqparse.add_argument('password', type=str, location='json')
-        self.reqparse.add_argument('role', type=str, location='json')
-        self.reqparse.add_argument('last_name', type=str, location='json')
-        self.reqparse.add_argument('first_name', type=str, location='json')
-        super(UserListAPI, self).__init__()
 
     def post(self):
         """Creates a new user"""
-        args = self.reqparse.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument('login', type=str, location='json')
+        parser.add_argument('password', type=str, location='json')
+        parser.add_argument('role', type=str, location='json')
+        parser.add_argument('last_name', type=str, location='json')
+        parser.add_argument('first_name', type=str, location='json')
+        args = parser.parse_args()
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
