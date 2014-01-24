@@ -168,10 +168,11 @@ class IamTestCase(WsTestCase):
         self.assertEquals(404, rv_session.status_code)
 
     def test_search(self):
-        """ Create 1 user, search twice:
+        """ Create an entity with a user in it, search the user twice:
         * first find him
         * second don't find him
         """
+        self.create_entity()
         # Create
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
