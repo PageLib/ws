@@ -7,8 +7,7 @@ from fields import user_fields
 from ws.common.helpers import generate_uuid_for
 import hashlib
 from roles import roles
-from sqlalchemy import exists
-from sqlalchemy import and_, not_
+from sqlalchemy import and_, not_, exists
 
 
 class UserListAPI(Resource):
