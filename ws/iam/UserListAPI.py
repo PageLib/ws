@@ -18,7 +18,7 @@ class UserListAPI(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, location='json', required=True)
         parser.add_argument('password', type=str, location='json', required=True)
-        parser.add_argument('role', type=str, location='json')
+        parser.add_argument('role', type=str, location='json', required=True)
         parser.add_argument('last_name', type=str, location='json')
         parser.add_argument('first_name', type=str, location='json')
         parser.add_argument('entity_id', type=str, location='json')
@@ -26,13 +26,13 @@ class UserListAPI(Resource):
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
-        role = args.get('role', None)
+        role = args['role']
         entity_id = args['entity_id']
         login = args['login']
         password = args['password']
         
         #Check if the role is correct
-        if role not in roles or role is None:
+        if role not in roles:
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
 
@@ -41,12 +41,6 @@ class UserListAPI(Resource):
                                                                        not_(User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
-        # Check if the entity exists
-
-        if request.dbs.query(exists().where(and_(model.Entity.id == entity_id,
-                                                 not_(model.Entity.deleted)))).scalar():
-            app.logger.warning('Request on POST UserListAPI with entity_id {} not found'.format(entity_id))
-            return {'error': 'entity_id doesn\'t exists'}, 412
 
         # Write the user in DB.
         user_id = generate_uuid_for(request.dbs, User)

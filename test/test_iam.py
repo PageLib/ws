@@ -21,7 +21,7 @@ class IamTestCase(WsTestCase):
         rv_post = requests.post(self.iam_endpoint + '/v1/entities',
                                 data=json.dumps(entity),
                                 headers={'Content-type': 'application/json'})
-        rv_post.json()
+        self.assertEquals(200, rv_post.status_code)
         entity_id = rv_post.json()['id']
         self.ref_user['entity_id'] = entity_id
 
@@ -191,8 +191,10 @@ class IamTestCase(WsTestCase):
         no_user = rv_search_not_found.json()['users']
         self.assertEquals(0, len(no_user))
 
-
     def test_put_delete_entity(self):
+        """
+        Create an entity, PUT it, add a user delete the entity and check that the user is deleted.
+        """
         self.create_entity()
 
         # Edit the entity, then get it and assert the name was modified
