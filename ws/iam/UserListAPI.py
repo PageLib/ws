@@ -21,11 +21,13 @@ class UserListAPI(Resource):
         parser.add_argument('role', type=str, location='json')
         parser.add_argument('last_name', type=str, location='json')
         parser.add_argument('first_name', type=str, location='json')
+        parser.add_argument('entity_id', type=str, location='json')
         args = parser.parse_args()
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
         role = args.get('role', None)
+        entity_id = args['entity_id']
         login = args['login']
         password = args['password']
         
@@ -36,7 +38,7 @@ class UserListAPI(Resource):
 
         # We check if another non deleted user has the same login
         user_same_login_exists = request.dbs.query(exists().where(and_(User.login == login,
-                                                                   not_(User.deleted)))).scalar()
+                                                                       not_(User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
         
@@ -49,7 +51,8 @@ class UserListAPI(Resource):
             last_name=last_name,
             first_name=first_name,
             role=role,
-            deleted=False
+            deleted=False,
+            entity_id=entity_id
         )
         request.dbs.add(u)
         app.logger.info('User {} (uuid: {}) created'.format(login, user_id))
