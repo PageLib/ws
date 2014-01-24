@@ -41,7 +41,13 @@ class UserListAPI(Resource):
                                                                        not_(User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
-        
+        # Check if the entity exists
+
+        if request.dbs.query(exists().where(and_(model.Entity.id == entity_id,
+                                                 not_(model.Entity.deleted)))).scalar():
+            app.logger.warning('Request on POST UserListAPI with entity_id {} not found'.format(entity_id))
+            return {'error': 'entity_id doesn\'t exists'}, 412
+
         # Write the user in DB.
         user_id = generate_uuid_for(request.dbs, User)
         u = User(
