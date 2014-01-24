@@ -6,7 +6,8 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 import hashlib
 from roles import roles
-from sqlalchemy import not_
+from sqlalchemy import and_, not_, exists
+
 
 class UserAPI(Resource):
     def __init__(self):
@@ -53,7 +54,15 @@ class UserAPI(Resource):
 
         args = self.reqparse.parse_args()
         if args['login'] is not None:
-            user.login = args['login']
+            # We check if another non deleted user has the same login
+            login = args['login']
+            user_same_login_exists = request.dbs.query(exists().where(and_(model.User.login == login,
+                                                                      not_(model.User.deleted)))).scalar()
+            if user_same_login_exists:
+                return {'error': 'User with the same login exists.'}, 412
+
+            user.login = login
+
         if args['password'] is not None:
             user.password_hash = hashlib.sha1(args['password'])
         if args['role'] is not None:
