@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Template configuration file for Security webservice."""
+"""Template configuration file for IAM webservice."""
 
 import logging
 

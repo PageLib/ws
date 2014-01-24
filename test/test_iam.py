@@ -15,12 +15,23 @@ class IamTestCase(WsTestCase):
         'role': 'user'
     }
 
+    def create_entity(self):
+        entity = {'name': 'ECP'}
+
+        rv_post = requests.post(self.iam_endpoint + '/v1/entities',
+                                data=json.dumps(entity),
+                                headers={'Content-type': 'application/json'})
+        self.assertEquals(200, rv_post.status_code)
+        entity_id = rv_post.json()['id']
+        self.ref_user['entity_id'] = entity_id
+
     def assertJsonAndStatus(self, rv, status):
         self.assertEquals(rv.headers['Content-type'], 'application/json')
         self.assertEquals(status, rv.status_code)
 
     def test_create_user_twice(self):
         """Try to create the same user twice, the first works and we assert failure on the second trial."""
+        self.create_entity()
         rv_post = requests.post(self.iam_endpoint + '/v1/users',
                                 data=json.dumps(self.ref_user),
                                 headers={'Content-type': 'application/json'})
@@ -28,7 +39,7 @@ class IamTestCase(WsTestCase):
         json_post = rv_post.json()
 
         # check returned user's fields
-        for field in ('login', 'last_name', 'first_name', 'role'):
+        for field in ('login', 'last_name', 'first_name', 'role', 'entity_id'):
             self.assertIn(field, json_post, 'missing field ' + field)
             self.assertEquals(json_post[field], self.ref_user[field], 'mismatch on field ' + field)
 
@@ -44,6 +55,7 @@ class IamTestCase(WsTestCase):
 
     def test_edit_user(self):
         """Create and modify a user."""
+        self.create_entity()
         rv_post = requests.post(self.iam_endpoint + '/v1/users',
                                 data=json.dumps(self.ref_user),
                                 headers={'Content-type': 'application/json'})
@@ -80,6 +92,7 @@ class IamTestCase(WsTestCase):
     def test_delete_recreate_user(self):
         """Create and delete a user, assert that the user no longer exists, and can be created
             again."""
+        self.create_entity()
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
                                   headers={'Content-type': 'application/json'})
@@ -99,6 +112,7 @@ class IamTestCase(WsTestCase):
 
     def test_create_login_permission_logout(self):
         """Create a user, login, test permissions, and logout."""
+        self.create_entity()
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
                                   headers={'Content-type': 'application/json'})
@@ -154,10 +168,11 @@ class IamTestCase(WsTestCase):
         self.assertEquals(404, rv_session.status_code)
 
     def test_search(self):
-        """ Create 1 user, search twice:
+        """ Create an entity with a user in it, search the user twice:
         * first find him
         * second don't find him
         """
+        self.create_entity()
         # Create
         rv_create = requests.post(self.iam_endpoint + '/v1/users',
                                   data=json.dumps(self.ref_user),
@@ -176,3 +191,33 @@ class IamTestCase(WsTestCase):
         no_user = rv_search_not_found.json()['users']
         self.assertEquals(0, len(no_user))
 
+    def test_put_delete_entity(self):
+        """
+        Create an entity, PUT it, add a user delete the entity and check that the user is deleted.
+        """
+        self.create_entity()
+
+        # Edit the entity, then get it and assert the name was modified
+        entity_id = self.ref_user['entity_id']
+        rv_put = requests.put(self.iam_endpoint + '/v1/entities/' + entity_id,
+                              data=json.dumps({'name': 'Centrale-Supelec'}),
+                              headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_put, 200)
+
+        rv_get_entity = requests.get(self.iam_endpoint + '/v1/entities/' + entity_id)
+        self.assertJsonAndStatus(rv_get_entity, 200)
+        self.assertEquals('Centrale-Supelec', rv_get_entity.json()['name'])
+
+        # Add a user
+        rv_create = requests.post(self.iam_endpoint + '/v1/users',
+                                  data=json.dumps(self.ref_user),
+                                  headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_create, 201)
+        user_id = rv_create.json()['id']
+
+        # Delete the entity and assert the user no longer exists
+        rv_delete = requests.delete(self.iam_endpoint + '/v1/entities/' + entity_id)
+        self.assertEquals(200, rv_delete.status_code)
+
+        rv_get_user = requests.get(self.iam_endpoint + '/v1/users/' + user_id)
+        self.assertEquals(404, rv_get_user.status_code)

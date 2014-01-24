@@ -9,7 +9,6 @@ import hashlib
 from roles import roles
 from sqlalchemy import and_, not_, exists
 
-
 class UserListAPI(Resource):
 
     def post(self):
@@ -25,21 +24,22 @@ class UserListAPI(Resource):
 
         first_name = args.get('first_name', None)
         last_name = args.get('last_name', None)
-        role = args.get('role', None)
+        role = args['role']
+        entity_id = args['entity_id']
         login = args['login']
         password = args['password']
         
         #Check if the role is correct
-        if role not in roles or role is None:
+        if role not in roles:
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
 
         # We check if another non deleted user has the same login
         user_same_login_exists = request.dbs.query(exists().where(and_(User.login == login,
-                                                                   not_(User.deleted)))).scalar()
+                                                                       not_(User.deleted)))).scalar()
         if user_same_login_exists:
             return {'error': 'User with the same login exists.'}, 412
-        
+
         # Write the user in DB.
         user_id = generate_uuid_for(request.dbs, User)
         u = User(
@@ -49,7 +49,8 @@ class UserListAPI(Resource):
             last_name=last_name,
             first_name=first_name,
             role=role,
-            deleted=False
+            deleted=False,
+            entity_id=entity_id
         )
         request.dbs.add(u)
         app.logger.info('User {} (uuid: {}) created'.format(login, user_id))

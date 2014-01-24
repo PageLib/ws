@@ -19,7 +19,9 @@ app = Flask(__name__)
 
 from UserAPI import UserAPI
 from UserListAPI import UserListAPI
-from ws.common.helpers import generate_uuid_for
+from EntityListAPI import EntityListAPI
+from EntityAPI import EntityAPI
+from ws.common.helpers import generate_uuid_for, get_or_412
 
 
 # Load configuration
@@ -60,6 +62,8 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
 api = Api(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')
+api.add_resource(EntityAPI, '/v1/entities/<entity_id>', endpoint='entitie')
+api.add_resource(EntityListAPI, '/v1/entities', endpoint='entities')
 
 
 @app.route('/v1/login', methods=['POST'])
@@ -67,12 +71,8 @@ api.add_resource(UserListAPI, '/v1/users', endpoint='users')
 def login_action():
     # Get credentials passed in the request
     data = request.get_json()
-    try:
-        login = data['login']
-        password_hash = data['password_hash']
-    except KeyError:
-        app.logger.error('Missing parameters login or password_hash in json in /v1/login')
-        return {'error': 'Missing Keyword \'login\' or \'password_hash\' in json'}, 412
+    login = get_or_412(data, 'login')
+    password_hash = get_or_412(data, 'password_hash')
 
     # Find a matching user
     try:

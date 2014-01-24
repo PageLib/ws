@@ -3,7 +3,8 @@ from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
 from flask import abort, request
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from ws.common.helpers import generate_uuid_for
+from ws.common.helpers import generate_uuid_for, get_or_412
+
 
 class TransactionListAPI(Resource):
     def __init__(self):
@@ -18,13 +19,6 @@ class TransactionListAPI(Resource):
         self.reqparse.add_argument('from', type=str, location='values')
         self.reqparse.add_argument('to', type=str, location='values')
         super(TransactionListAPI, self).__init__()
-
-    def get_or_412(self, args, name):
-        if args.get(name, None):
-            return args.get(name, None)
-        else:
-            error = 'No ' + name + ' provided'
-            abort(412, error)
 
     def get(self):
         query = request.dbs.query(Transaction)
@@ -57,10 +51,10 @@ class TransactionListAPI(Resource):
         args = self.reqparse.parse_args()
 
         # Check if the required fields are present.
-        transaction_type = self.get_or_412(args, 'transaction_type')
-        amount = self.get_or_412(args, 'amount')
-        currency = self.get_or_412(args, 'currency')
-        user_id = self.get_or_412(args, 'user_id')
+        transaction_type = get_or_412(args, 'transaction_type')
+        amount = get_or_412(args, 'amount')
+        currency = get_or_412(args, 'currency')
+        user_id = get_or_412(args, 'user_id')
 
         if len(user_id) != 32:
             return {'error': 'The user id has not the good length.'}, 412
@@ -76,7 +70,7 @@ class TransactionListAPI(Resource):
             if pages_color == 0 and pages_grey_level == 0:
                 return {'error': 'No color or grey level page.'}, 412
 
-            copies = self.get_or_412(args, 'copies')
+            copies = get_or_412(args, 'copies')
 
             # Check if the printing has a positive number of copies.
             if copies <= 0:
