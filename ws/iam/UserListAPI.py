@@ -70,12 +70,14 @@ class UserListAPI(Resource):
             query = query.filter(User.login == args['login'])
 
         if args.get('first_name', None):
-            query = query.filter(User.first_name == args['first_name'])
+            name_search = '%' + args['first_name'] + '%'
+            query = query.filter(User.first_name.like(name_search))
 
         if args.get('last_name', None):
-            query = query.filter(User.login == args['last_name'])
+            name_search = '%' + args['last_name'] + '%'
+            query = query.filter(User.first_name.like(name_search))
 
-        return {'users': map(lambda u: marshal(u.to_dict(), user_fields, query.all()))}
+        return {'users': map(lambda u: marshal(u.to_dict(), user_fields), query.all())}
 
 
 from app import app

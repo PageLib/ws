@@ -167,6 +167,30 @@ class IamTestCase(WsTestCase):
         rv_session = requests.get(self.iam_endpoint + '/v1/sessions/' + session_id)
         self.assertEquals(404, rv_session.status_code)
 
+    def test_search(self):
+        """ Create 1 user, search twice:
+        * first find him
+        * second don't find him
+        """
+        # Create
+        rv_create = requests.post(self.iam_endpoint + '/v1/users',
+                                  data=json.dumps(self.ref_user),
+                                  headers={'Content-type': 'application/json'})
+        self.assertJsonAndStatus(rv_create, 201)
+        user_id = rv_create.json()['id']
+
+        # Find him
+        rv_search_find = requests.get(self.iam_endpoint + '/v1/users?login=john.doe')
+        users = rv_search_find.json()['users']
+        self.assertEquals(1, len(users))
+        self.assertEquals(user_id, users[0]['id'])
+
+        # Doesn't
+        rv_search_not_found = requests.get(self.iam_endpoint + '/v1/users?first_name=alex')
+        no_user = rv_search_not_found.json()['users']
+        self.assertEquals(0, len(no_user))
+
+
     def test_put_delete_entity(self):
         self.create_entity()
 
