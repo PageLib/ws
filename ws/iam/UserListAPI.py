@@ -20,6 +20,7 @@ class UserListAPI(Resource):
         parser.add_argument('role', type=str, location='json')
         parser.add_argument('last_name', type=str, location='json')
         parser.add_argument('first_name', type=str, location='json')
+        parser.add_argument('entity_id', type=str, location='json')
         args = parser.parse_args()
 
         first_name = args.get('first_name', None)
