@@ -4,7 +4,7 @@ import os
 import sys
 import datetime
 import logging
-from flask import Flask, request
+from flask import Flask, request, abort
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -200,12 +200,11 @@ def check_permission_action(session_id, action, resource, user_id):
 
 
 @app.route('/v1/sessions/expired', methods=['DELETE'])
-@json_response
 def delete_expired_sessions_action():
     # Request to be made from local server only
     if request.remote_addr not in ('127.0.0.1', '::1'):
         app.logger.error('Refused request to delete expired sessions from external IP ' + request.remote_addr)
-        return '', 404
+        abort(404)
 
     sessions = request.dbs.query(model.Session).all()
 
