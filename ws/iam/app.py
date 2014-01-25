@@ -175,7 +175,7 @@ def check_permission_action(session_id, action, resource, user_id):
         # Check that the session is still active
         if not session.is_active:
             app.logger.info('Session {} expired, unable to check permission'.format(session_id))
-            return '', 404
+            return {'error': 'invalid_session'}, 404
 
         # Refresh the session
         session.refreshed = datetime.datetime.now()
@@ -187,16 +187,16 @@ def check_permission_action(session_id, action, resource, user_id):
         return {'allowed': allowed}, 200
 
     except NoResultFound:
-        app.logger.warning('No result found for user {} and session {}').format(user_id, session_id)
-        return '', 404
+        app.logger.warning('No result found for user {} and session {}'.format(user_id, session_id))
+        return {'error': 'invalid_session'}, 404
 
     except MultipleResultsFound:
-        app.logger.error('Multiple results found for user {} and session {}').format(user_id, session_id)
+        app.logger.error('Multiple results found for user {} and session {}'.format(user_id, session_id))
         return '', 500
 
     except AssertionError:
-        app.logger.error('Request on non existing resource: {} or action: {}'.format(resource, action))
-        return '', 404
+        app.logger.error('Request on non existing resource: {}'.format(resource))
+        return {'error': 'invalid_resource'}, 404
 
 
 @app.route('/v1/sessions/expired', methods=['DELETE'])
