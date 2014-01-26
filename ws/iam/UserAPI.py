@@ -69,7 +69,7 @@ class UserAPI(Resource):
         if args['entity_id'] is not None:
             user.entity_id = args['entity_id']
         if args['password'] is not None:
-            user.password_hash = hashlib.sha1(args['password'])
+            user.password_hash = args['password']
         if args['role'] is not None:
             role = args['role']
             if role in roles:
