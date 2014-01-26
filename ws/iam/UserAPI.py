@@ -4,7 +4,6 @@ import model
 from flask import request
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
-import hashlib
 from roles import roles
 from sqlalchemy import and_, not_, exists
 

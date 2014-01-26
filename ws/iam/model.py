@@ -42,7 +42,7 @@ class User(Base):
     role = Column(String(255))
     deleted = Column(Boolean())
     entity_id = Column(CHAR(32), ForeignKey('entity.id'))
-    department = relationship('Entity')
+    entity = relationship('Entity')
 
     def to_dict(self):
         return {
