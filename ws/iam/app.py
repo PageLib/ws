@@ -94,9 +94,10 @@ def login_action():
 
     # Find a matching user
     try:
-        user = request.dbs.query(model.User).filter(model.User.login == login)\
-                                            .filter(model.User.password_hash == password_hash)\
-                                            .filter(not_(model.User.deleted)).one()
+        user = request.dbs.query(model.User).join(model.Entity).filter(model.User.login == login)\
+                                                               .filter(model.User.password_hash == password_hash)\
+                                                               .filter(not_(model.Entity.deleted))\
+                                                               .filter(not_(model.User.deleted)).one()
     except NoResultFound:
         app.logger.warning('Try to log unsuccessfully for user login {}'.format(login))
         return {}, 404
@@ -152,9 +153,11 @@ def logout_action(session_id):
 def session_info_action(session_id, user_id):
     try:
         # Find the session
-        session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
+        session = request.dbs.query(model.Session).join(model.User)\
+                                                  .join(model.Entity)\
                                                   .filter(not_(model.User.deleted))\
-                                                  .filter(model.User.id == model.Session.user_id)\
+                                                  .filter(not_(model.Entity.deleted))\
+                                                  .filter(model.Session.id == session_id)\
                                                   .filter(model.Session.user_id == user_id).one()
 
         # Check that the session is still active
@@ -185,10 +188,12 @@ def session_info_action(session_id, user_id):
 @json_response
 def check_permission_action(session_id, action, resource, user_id):
     try:
-        session = request.dbs.query(model.Session).filter(model.Session.id == session_id)\
-                                                  .filter(model.Session.user_id == user_id)\
-                                                  .filter(model.User.id == model.Session.user_id)\
-                                                  .filter(not_(model.User.deleted)).one()
+        session = request.dbs.query(model.Session).join(model.User)\
+                                                  .join(model.Entity)\
+                                                  .filter(not_(model.User.deleted))\
+                                                  .filter(not_(model.Entity.deleted))\
+                                                  .filter(model.Session.id == session_id)\
+                                                  .filter(model.Session.user_id == user_id).one()
 
         # Check that the session is still active
         if not session.is_active:

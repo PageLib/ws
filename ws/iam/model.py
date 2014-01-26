@@ -14,7 +14,8 @@ class Session(Base):
     __tablename__ = 'session'
 
     id = Column(CHAR(32), primary_key=True)  # used as token
-    user_id = Column(CHAR(32))
+    user_id = Column(CHAR(32), ForeignKey('user.id'))
+    user = relationship('User')
     opened = Column(DateTime)
     refreshed = Column(DateTime)
     role = Column(String(255))
