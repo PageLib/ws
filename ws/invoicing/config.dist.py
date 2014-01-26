@@ -12,3 +12,7 @@ LOG_FORMAT = '%(asctime)s %(levelname)s - %(message)s'
 
 SQLALCHEMY_DATABASE_URI = ''
 CREATE_SCHEMA_ON_STARTUP = False
+
+IAM_ENDPOINT = ''
+DOCS_ENDPOINT = ''
+SETTINGS_ENDPOINT = ''

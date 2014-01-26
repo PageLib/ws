@@ -8,6 +8,8 @@ from flask import Flask, request, abort
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
+from wsc.Configuration import Configuration
+from wsc.iam import IAM, Session
 from ws.common.decorators import json_response
 import model
 from roles import acl
@@ -44,10 +46,26 @@ app.logger.addHandler(log_handler)
 db_engine = create_engine(app.config['DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
 
-# Import of the database
+# Set up WSC configuration
+wsc_config = Configuration()
+wsc_config.iam_endpoint = 'http://{}:{}'.format(app.config['HOST'], app.config['PORT'])
+wsc_config.invoicing_endpoint = app.config['INVOICING_ENDPOINT']
+wsc_config.docs_endpoint = app.config['DOCS_ENDPOINT']
+wsc_config.settings_endpoint = app.config['SETTINGS_ENDPOINT']
+
+
 @app.before_request
 def open_session():
     setattr(request, 'dbs', DBSession())
+    setattr(request, 'wsc_config', wsc_config)
+    setattr(request, 'iam', IAM(wsc_config))
+
+    # Retrieve WS session attributes
+    auth = request.authorization
+    if auth:
+        setattr(request, 'ws_session', Session(auth.username, auth.password))
+    else:
+        setattr(request, 'ws_session', Session(None, None))
 
 
 @app.after_request

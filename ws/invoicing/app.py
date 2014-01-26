@@ -3,9 +3,11 @@ import os
 import sys
 import logging
 from flask import Flask, make_response, jsonify, request
-from ws.common.MyAPI import MyApi
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from wsc.Configuration import Configuration
+from wsc.iam import IAM, Session
+from ws.common.MyAPI import MyApi
 import model
 from TransactionListAPI import TransactionListAPI
 from TransactionAPI import TransactionAPI
@@ -37,10 +39,26 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
     app.logger.info('Creating database schema')
     model.Base.metadata.create_all(db_engine)
 
+# Set up WSC configuration
+wsc_config = Configuration()
+wsc_config.iam_endpoint = app.config['IAM_ENDPOINT']
+wsc_config.invoicing_endpoint = 'http://{}:{}'.format(app.config['HOST'], app.config['PORT'])
+wsc_config.docs_endpoint = app.config['DOCS_ENDPOINT']
+wsc_config.settings_endpoint = app.config['SETTINGS_ENDPOINT']
+
 
 @app.before_request
 def open_session():
     setattr(request, 'dbs', DBSession())
+    setattr(request, 'wsc_config', wsc_config)
+    setattr(request, 'iam', IAM(wsc_config))
+
+    # Retrieve WS session attributes
+    auth = request.authorization
+    if auth:
+        setattr(request, 'ws_session', Session(auth.username, auth.password))
+    else:
+        setattr(request, 'ws_session', Session(None, None))
 
 
 @app.after_request
