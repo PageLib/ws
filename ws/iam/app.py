@@ -175,7 +175,7 @@ def check_permission_action(session_id, action, resource, user_id):
         # Check that the session is still active
         if not session.is_active:
             app.logger.info('Session {} expired, unable to check permission'.format(session_id))
-            return {'error': 'invalid_session'}, 404
+            return {'error': 'session_expired'}, 404
 
         # Refresh the session
         session.refreshed = datetime.datetime.now()
