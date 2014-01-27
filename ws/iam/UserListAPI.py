@@ -16,12 +16,12 @@ class UserListAPI(Resource):
         """Creates a new user"""
         # Parse the arguments.
         parser = reqparse.RequestParser()
-        parser.add_argument('login', type=str, location='json', required=True)
-        parser.add_argument('password', type=str, location='json', required=True)
-        parser.add_argument('role', type=str, location='json')
+        parser.add_argument('login', type=str, location='json', required=True, help='Missing login')
+        parser.add_argument('password', type=str, location='json', required=True, help='Missing password')
+        parser.add_argument('role', type=str, location='json', required=True, help='Missing role')
+        parser.add_argument('entity_id', type=str, location='json', required=True, help='Missing entity_id.')
         parser.add_argument('last_name', type=str, location='json')
         parser.add_argument('first_name', type=str, location='json')
-        parser.add_argument('entity_id', type=str, location='json')
         args = parser.parse_args()
 
         first_name = args.get('first_name', None)
