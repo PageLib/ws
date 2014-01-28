@@ -67,6 +67,7 @@ class UserAPI(Resource):
                                              .filter(model.User.login == login)
 
             if request.dbs.query(q.exists()).scalar():
+                app.logger.warning('Tried to create an user with already existing name')
                 return {'error': 'User with the same login exists.'}, 412
 
             user.login = login

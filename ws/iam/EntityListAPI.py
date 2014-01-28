@@ -33,6 +33,14 @@ class EntityListAPI(Resource):
         """
         args = self.reqparse.parse_args()
         name = get_or_412(args, 'name')
+
+        # Check if the another entity has the same name.
+        q = request.dbs.query(model.Entity).filter(not_(model.Entity.deleted))\
+                                          .filter(model.Entity.name == name)
+
+        if request.dbs.query(q.exists()).scalar():
+            app.logger.warning('Tried to create an entity with already existing name')
+            return {'error': 'Entity with the same name already exists.'}, 412
         id = generate_uuid_for(request.dbs, model.Entity)
         e = model.Entity(
             id=id,
