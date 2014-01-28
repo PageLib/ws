@@ -71,7 +71,9 @@ class UserListAPI(Resource):
         parser.add_argument('last_name', type=str, location='values')
         args = parser.parse_args()
         
-        query = request.dbs.query(User)
+        query = request.dbs.query(User).join(model.Entity)\
+                                       .filter(not_(model.User.deleted))\
+                                       .filter(not_(model.Entity.deleted))
         
         # Optional filters
         if args.get('login', None):

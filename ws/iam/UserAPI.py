@@ -24,9 +24,10 @@ class UserAPI(Resource):
         GET the user with the good user_id.
         """
         try:
-            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
-                                                                   .filter(not_(model.User.deleted))\
-                                                                   .filter(not_(model.Entity.deleted)).one()
+            user = request.dbs.query(model.User).join(model.Entity)\
+                                                .filter(model.User.id == user_id)\
+                                                .filter(not_(model.User.deleted))\
+                                                .filter(not_(model.Entity.deleted)).one()
 
             app.logger.info('Successful request on user {}'.format(user_id))
         except NoResultFound:
@@ -43,9 +44,10 @@ class UserAPI(Resource):
         Updates a user.
         """
         try:
-            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
-                                                                   .filter(not_(model.User.deleted))\
-                                                                   .filter(not_(model.Entity.deleted)).one()
+            user = request.dbs.query(model.User).join(model.Entity)\
+                                                .filter(model.User.id == user_id)\
+                                                .filter(not_(model.User.deleted))\
+                                                .filter(not_(model.Entity.deleted)).one()
             app.logger.info('Request on user {}'.format(user_id))
         except NoResultFound:
             app.logger.warning('PUT Request on non existing user {}'.format(user_id))
@@ -59,9 +61,12 @@ class UserAPI(Resource):
         if args['login'] is not None:
             # We check if another non deleted user has the same login
             login = args['login']
-            user_same_login_exists = request.dbs.query(exists().where(and_(model.User.login == login,
-                                                                      not_(model.User.deleted)))).scalar()
-            if user_same_login_exists:
+            q = request.dbs.query(model.User).join(model.Entity)\
+                                             .filter(not_(model.User.deleted))\
+                                             .filter(not_(model.Entity.deleted))\
+                                             .filter(model.User.login == login)
+
+            if request.dbs.query(q.exists()).scalar():
                 return {'error': 'User with the same login exists.'}, 412
 
             user.login = login
@@ -87,9 +92,10 @@ class UserAPI(Resource):
         Deletes a user.
         """
         try:
-            user = request.dbs.query(model.User).join(model.Entity).filter(model.User.id == user_id)\
-                                                                   .filter(not_(model.User.deleted))\
-                                                                   .filter(not_(model.Entity.deleted)).one()
+            user = request.dbs.query(model.User).join(model.Entity)\
+                                                .filter(model.User.id == user_id)\
+                                                .filter(not_(model.User.deleted))\
+                                                .filter(not_(model.Entity.deleted)).one()
             user.deleted = True
         except NoResultFound:
             app.logger.warning('DELETE Request on non existing user {}'.format(user_id))

@@ -94,10 +94,11 @@ def login_action():
 
     # Find a matching user
     try:
-        user = request.dbs.query(model.User).join(model.Entity).filter(model.User.login == login)\
-                                                               .filter(model.User.password_hash == password_hash)\
-                                                               .filter(not_(model.Entity.deleted))\
-                                                               .filter(not_(model.User.deleted)).one()
+        user = request.dbs.query(model.User).join(model.Entity)\
+                                            .filter(model.User.login == login)\
+                                            .filter(model.User.password_hash == password_hash)\
+                                            .filter(not_(model.Entity.deleted))\
+                                            .filter(not_(model.User.deleted)).one()
     except NoResultFound:
         app.logger.warning('Try to log unsuccessfully for user login {}'.format(login))
         return {}, 404
