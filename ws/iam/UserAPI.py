@@ -12,7 +12,7 @@ class UserAPI(Resource):
     def __init__(self):
         self.reqparse = reqparse.RequestParser()
         self.reqparse.add_argument('login', type=str, location='json')
-        self.reqparse.add_argument('password', type=str, location='json')
+        self.reqparse.add_argument('password_hash', type=str, location='json')
         self.reqparse.add_argument('role', type=str, location='json')
         self.reqparse.add_argument('first_name', type=str, location='json')
         self.reqparse.add_argument('entity_id', type=str, location='json')
@@ -73,8 +73,8 @@ class UserAPI(Resource):
             user.login = login
         if args['entity_id'] is not None:
             user.entity_id = args['entity_id']
-        if args['password'] is not None:
-            user.password_hash = args['password']
+        if args['password_hash'] is not None:
+            user.password_hash = args['password_hash']
         if args['role'] is not None:
             role = args['role']
             if role in roles:

@@ -17,7 +17,7 @@ class UserListAPI(Resource):
         # Parse the arguments.
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, location='json', required=True, help='Missing login')
-        parser.add_argument('password', type=str, location='json', required=True, help='Missing password')
+        parser.add_argument('password_hash', type=str, location='json', required=True, help='Missing password')
         parser.add_argument('role', type=str, location='json', required=True, help='Missing role')
         parser.add_argument('entity_id', type=str, location='json', required=True, help='Missing entity_id.')
         parser.add_argument('last_name', type=str, location='json')
@@ -29,7 +29,7 @@ class UserListAPI(Resource):
         role = args['role']
         entity_id = args['entity_id']
         login = args['login']
-        password = args['password']
+        password_hash = args['password_hash']
         
         #Check if the role is correct
         if role not in roles:
@@ -53,7 +53,7 @@ class UserListAPI(Resource):
         u = User(
             id=user_id,
             login=login,
-            password_hash=hashlib.sha1(password).hexdigest(),
+            password_hash=hashlib.sha1(password_hash).hexdigest(),
             last_name=last_name,
             first_name=first_name,
             role=role,

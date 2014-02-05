@@ -9,7 +9,7 @@ from WsTestCase import WsTestCase
 class IamTestCase(WsTestCase):
     ref_user = {
         'login': 'john.doe',
-        'password': '1234',
+        'password_hash': '1234',
         'last_name': 'Doe',
         'first_name': 'John',
         'role': 'user'
@@ -131,7 +131,7 @@ class IamTestCase(WsTestCase):
         rv_login = requests.post(
             self.iam_endpoint + '/v1/login',
             data=json.dumps({'login': self.ref_user['login'],
-                             'password_hash': hashlib.sha1(self.ref_user['password']).hexdigest()}),
+                             'password_hash': hashlib.sha1(self.ref_user['password_hash']).hexdigest()}),
             headers={'Content-type': 'application/json'})
         self.assertJsonAndStatus(rv_login, 200)
         session_id = rv_login.json()['session_id']
