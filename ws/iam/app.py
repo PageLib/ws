@@ -73,10 +73,6 @@ def commit_session(response):
     request.dbs.commit()
     return response
 
-if app.config['CREATE_SCHEMA_ON_STARTUP']:
-    print 'Creating database schema'
-    model.Base.metadata.create_all(db_engine)
-
 api = MyApi(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')

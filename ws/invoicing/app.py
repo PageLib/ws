@@ -35,10 +35,6 @@ app.logger.addHandler(log_handler)
 db_engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
 
-if app.config['CREATE_SCHEMA_ON_STARTUP']:
-    app.logger.info('Creating database schema')
-    model.Base.metadata.create_all(db_engine)
-
 # Set up WSC configuration
 wsc_config = Configuration()
 wsc_config.iam_endpoint = app.config['IAM_ENDPOINT']

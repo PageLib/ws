@@ -7,6 +7,8 @@ from subprocess import Popen, PIPE
 import config_iam
 import config_invoicing
 import time
+import ws.iam.schema
+import ws.invoicing.schema
 
 
 class WsTestCase(unittest.TestCase):
@@ -26,14 +28,15 @@ class WsTestCase(unittest.TestCase):
         self.iam_endpoint = 'http://{}:{}'.format(config_iam.HOST, config_iam.PORT)
         self.invoicing_endpoint = 'http://{}:{}'.format(config_invoicing.HOST, config_invoicing.PORT)
 
-        self.iam_db_path = config_iam.DATABASE_URI[len('sqlite:///'):]
-        self.invoicing_db_path = config_invoicing.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):]
-
         self.startup_time = float(os.environ.get('PAGELIB_WS_TEST_STARTUP_TIME', 1))
 
         unittest.TestCase.__init__(self, *args, **kwargs)
 
     def setUp(self):
+        ws.iam.schema.create(config_iam.DATABASE_URI)
+        ws.iam.schema.create_default_data(config_iam.DATABASE_URI)
+        ws.invoicing.schema.create(config_invoicing.SQLALCHEMY_DATABASE_URI)
+
         self.iam_proc = Popen([self.python_cmd, self.ws_root + '/iam/app.py'], stdout=PIPE, stderr=PIPE)
         self.invoicing_proc = Popen([self.python_cmd, self.ws_root + '/invoicing/app.py'], stdout=PIPE, stderr=PIPE)
 
@@ -43,5 +46,5 @@ class WsTestCase(unittest.TestCase):
     def tearDown(self):
         self.iam_proc.kill()
         self.invoicing_proc.kill()
-        os.remove(self.iam_db_path)
-        os.remove(self.invoicing_db_path)
+        os.remove(config_iam.DATABASE_URI[len('sqlite:///'):])
+        os.remove(config_invoicing.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):])
