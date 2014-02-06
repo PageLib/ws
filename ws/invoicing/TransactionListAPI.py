@@ -3,7 +3,8 @@ from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
 from flask import abort, request
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from ws.common.helpers import generate_uuid_for, get_or_412
+from ws.common.helpers import generate_uuid_for, get_or_412, ensure_allowed
+from ws.common.helpers import ensure_allowed
 
 
 class TransactionListAPI(Resource):
@@ -21,6 +22,7 @@ class TransactionListAPI(Resource):
         super(TransactionListAPI, self).__init__()
 
     def get(self):
+        ensure_allowed('read', 'transaction')
         query = request.dbs.query(Transaction)
 
         # Optional filters
@@ -55,6 +57,9 @@ class TransactionListAPI(Resource):
         amount = get_or_412(args, 'amount')
         currency = get_or_412(args, 'currency')
         user_id = get_or_412(args, 'user_id')
+
+        resource = 'transaction' if request.ws_session.user_id == user_id else 'own_transaction'
+        ensure_allowed('create', resource)
 
         if len(user_id) != 32:
             return {'error': 'The user id has not the good length.'}, 412

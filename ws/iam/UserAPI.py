@@ -5,7 +5,8 @@ from flask import request
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 from roles import roles
-from sqlalchemy import and_, not_, exists
+from sqlalchemy import not_
+from ws.common.helpers import ensure_allowed
 
 
 class UserAPI(Resource):
@@ -23,6 +24,9 @@ class UserAPI(Resource):
         """
         GET the user with the good user_id.
         """
+        # Check permission
+        resource = 'own_user' if user_id == request.ws_session.user_id else 'user'
+        ensure_allowed('read', resource)
         try:
             user = request.dbs.query(model.User).join(model.Entity)\
                                                 .filter(model.User.id == user_id)\
@@ -30,6 +34,8 @@ class UserAPI(Resource):
                                                 .filter(not_(model.Entity.deleted)).one()
 
             app.logger.info('Successful request on user {}'.format(user_id))
+            return marshal(user.to_dict(), user_fields)
+
         except NoResultFound:
             app.logger.warning('Request on non existing user {}'.format(user_id))
             return {}, 404
@@ -37,18 +43,22 @@ class UserAPI(Resource):
         except MultipleResultsFound:
             app.logger.error('Multiple results found for user {}'.format(user_id))
             return {}, 500
-        return marshal(user.to_dict(), user_fields)
 
     def put(self, user_id):
         """
         Updates a user.
         """
+        # Check permission
+        resource = 'own_user' if user_id == request.ws_session.user_id else 'user'
+        ensure_allowed('update', resource)
         try:
             user = request.dbs.query(model.User).join(model.Entity)\
                                                 .filter(model.User.id == user_id)\
                                                 .filter(not_(model.User.deleted))\
                                                 .filter(not_(model.Entity.deleted)).one()
+
             app.logger.info('Request on user {}'.format(user_id))
+
         except NoResultFound:
             app.logger.warning('PUT Request on non existing user {}'.format(user_id))
             return {}, 404
@@ -92,12 +102,20 @@ class UserAPI(Resource):
         """
         Deletes a user.
         """
+        # Check permission
+        resource = 'own_user' if user_id == request.ws_session.user_id else 'user'
+        ensure_allowed('delete', resource)
+
         try:
             user = request.dbs.query(model.User).join(model.Entity)\
                                                 .filter(model.User.id == user_id)\
                                                 .filter(not_(model.User.deleted))\
                                                 .filter(not_(model.Entity.deleted)).one()
+
             user.deleted = True
+            app.logger.info('User {} deleted'.format(user_id))
+            return {'user_deleted': True}, 200
+
         except NoResultFound:
             app.logger.warning('DELETE Request on non existing user {}'.format(user_id))
             return 404
@@ -105,8 +123,6 @@ class UserAPI(Resource):
         except MultipleResultsFound:
             app.logger.error('Multiple results found for user {} on DELETE UserAPI'.format(user_id))
             return 500
-        app.logger.info('User {} deleted'.format(user_id))
-        return {'user_deleted': True}, 200
 
 
 from app import app

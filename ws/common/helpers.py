@@ -2,7 +2,6 @@ from uuid import uuid4
 from sqlalchemy import exists
 from flask import request, abort
 from wsc.exc import Unauthorized
-from flask import abort
 
 
 def generate_uuid_for(dbs, db_class):

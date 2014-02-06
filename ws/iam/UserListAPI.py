@@ -4,7 +4,7 @@ import model
 from model import User
 from flask import request
 from fields import user_fields
-from ws.common.helpers import generate_uuid_for
+from ws.common.helpers import generate_uuid_for, ensure_allowed
 import hashlib
 from roles import roles
 from sqlalchemy import and_, not_, exists
@@ -30,8 +30,10 @@ class UserListAPI(Resource):
         entity_id = args['entity_id']
         login = args['login']
         password_hash = args['password_hash']
-        
-        #Check if the role is correct
+
+        ensure_allowed('create', 'user')
+
+        # Check if the role is correct
         if role not in roles:
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
@@ -65,6 +67,8 @@ class UserListAPI(Resource):
         return marshal(u.to_dict(), user_fields), 201
 
     def get(self):
+        ensure_allowed('read', 'user')
+
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, location='values')
         parser.add_argument('first_name', type=str, location='values')
@@ -74,7 +78,7 @@ class UserListAPI(Resource):
         query = request.dbs.query(User).join(model.Entity)\
                                        .filter(not_(model.User.deleted))\
                                        .filter(not_(model.Entity.deleted))
-        
+
         # Optional filters
         if args.get('login', None):
             query = query.filter(User.login == args['login'])
