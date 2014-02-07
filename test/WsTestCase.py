@@ -80,3 +80,38 @@ class WsTestCase(unittest.TestCase):
         return requests.post(url,
                              data=json.dumps(data),
                              headers=headers)
+
+    def put_json(self, url, data, session=None, **kwargs):
+        headers = {'Content-type': 'application/json'}
+        if 'headers' in kwargs:
+            headers.update(kwargs['headers'])
+
+        if session is not None:
+            return requests.put(url,
+                                data=json.dumps(data),
+                                headers=headers,
+                                auth=(session.user_id, session.session_id))
+
+        return requests.put(url,
+                            data=json.dumps(data),
+                            headers=headers)
+
+    def get(self, url, session=None, **kwargs):
+        headers = {}
+        if 'headers' in kwargs:
+            headers.update(kwargs['headers'])
+        if session is None:
+            session = self.session
+        return requests.get(url,
+                            headers=headers,
+                            auth=(session.user_id, session.session_id))
+
+    def delete(self, url, session=None, **kwargs):
+        headers = {}
+        if 'headers' in kwargs:
+            headers.update(kwargs['headers'])
+        if session is None:
+            session = self.session
+        return requests.get(url,
+                            headers=headers,
+                            auth=(session.user_id, session.session_id))
