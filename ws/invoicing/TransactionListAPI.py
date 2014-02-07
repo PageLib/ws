@@ -3,7 +3,8 @@ from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
 from flask import abort, request
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
-from ws.common.helpers import generate_uuid_for, get_or_412
+from sqlalchemy.sql import func
+from ws.common.helpers import generate_uuid_for, get_or_412, ensure_allowed
 
 
 class TransactionListAPI(Resource):
@@ -21,6 +22,7 @@ class TransactionListAPI(Resource):
         super(TransactionListAPI, self).__init__()
 
     def get(self):
+        ensure_allowed('read', 'transaction')
         query = request.dbs.query(Transaction)
 
         # Optional filters
@@ -56,6 +58,9 @@ class TransactionListAPI(Resource):
         currency = get_or_412(args, 'currency')
         user_id = get_or_412(args, 'user_id')
 
+        resource = 'own_transaction' if request.ws_session.user_id == user_id else 'transaction'
+        ensure_allowed('create', resource)
+
         if len(user_id) != 32:
             return {'error': 'The user id has not the good length.'}, 412
         if len(currency) != 3:
@@ -79,10 +84,15 @@ class TransactionListAPI(Resource):
             if amount >= 0:
                 return {'error': 'Positive amount (should be negative for a printing).'}, 412
 
-            #TODO check the user balance.
-            #TODO check the coherence between the amount and others variables.
-            t = Printing(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
+            # Check the user balance
+            balance = request.dbs.query(func.sum(Transaction.amount).label('sum'))\
+                             .filter(Transaction.user_id == user_id).scalar()
 
+            if balance < amount:
+                return {'error': 'insufficient_balance'}
+
+            # TODO check the coherence between the amount and others variables.
+            t = Printing(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:

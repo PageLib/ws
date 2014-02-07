@@ -4,7 +4,7 @@ import model
 from model import User
 from flask import request
 from fields import user_fields
-from ws.common.helpers import generate_uuid_for
+from ws.common.helpers import generate_uuid_for, ensure_allowed
 import hashlib
 from roles import roles
 from sqlalchemy import and_, not_, exists
@@ -16,12 +16,12 @@ class UserListAPI(Resource):
         """Creates a new user"""
         # Parse the arguments.
         parser = reqparse.RequestParser()
-        parser.add_argument('login', type=str, location='json', required=True)
-        parser.add_argument('password', type=str, location='json', required=True)
-        parser.add_argument('role', type=str, location='json')
+        parser.add_argument('login', type=str, location='json', required=True, help='Missing login')
+        parser.add_argument('password_hash', type=str, location='json', required=True, help='Missing password')
+        parser.add_argument('role', type=str, location='json', required=True, help='Missing role')
+        parser.add_argument('entity_id', type=str, location='json', required=True, help='Missing entity_id.')
         parser.add_argument('last_name', type=str, location='json')
         parser.add_argument('first_name', type=str, location='json')
-        parser.add_argument('entity_id', type=str, location='json')
         args = parser.parse_args()
 
         first_name = args.get('first_name', None)
@@ -29,9 +29,11 @@ class UserListAPI(Resource):
         role = args['role']
         entity_id = args['entity_id']
         login = args['login']
-        password = args['password']
-        
-        #Check if the role is correct
+        password_hash = args['password_hash']
+
+        ensure_allowed('create', 'user')
+
+        # Check if the role is correct
         if role not in roles:
             app.logger.warning('Request on POST UserListAPI for non existing or missing role')
             return {'error': 'Role POSTed is not allowed'}, 412
@@ -53,7 +55,7 @@ class UserListAPI(Resource):
         u = User(
             id=user_id,
             login=login,
-            password_hash=hashlib.sha1(password).hexdigest(),
+            password_hash=hashlib.sha1(password_hash).hexdigest(),
             last_name=last_name,
             first_name=first_name,
             role=role,
@@ -65,14 +67,18 @@ class UserListAPI(Resource):
         return marshal(u.to_dict(), user_fields), 201
 
     def get(self):
+        ensure_allowed('read', 'user')
+
         parser = reqparse.RequestParser()
         parser.add_argument('login', type=str, location='values')
         parser.add_argument('first_name', type=str, location='values')
         parser.add_argument('last_name', type=str, location='values')
         args = parser.parse_args()
         
-        query = request.dbs.query(User)
-        
+        query = request.dbs.query(User).join(model.Entity)\
+                                       .filter(not_(model.User.deleted))\
+                                       .filter(not_(model.Entity.deleted))
+
         # Optional filters
         if args.get('login', None):
             query = query.filter(User.login == args['login'])

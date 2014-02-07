@@ -11,7 +11,6 @@ LOG_LEVEL = logging.DEBUG
 LOG_FORMAT = '%(asctime)s %(levelname)s - %(message)s'
 
 SQLALCHEMY_DATABASE_URI = 'sqlite:///<file>'
-CREATE_SCHEMA_ON_STARTUP = True
 
 IAM_ENDPOINT = ''
 DOCS_ENDPOINT = ''

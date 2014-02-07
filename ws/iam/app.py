@@ -13,7 +13,6 @@ from wsc.iam import IAM, Session
 from ws.common.decorators import json_response
 import model
 from roles import acl
-from flask_restful import Api
 from sqlalchemy import not_
 
 
@@ -24,6 +23,7 @@ from UserListAPI import UserListAPI
 from EntityListAPI import EntityListAPI
 from EntityAPI import EntityAPI
 from ws.common.helpers import generate_uuid_for, get_or_412
+from ws.common.MyAPI import MyApi
 
 
 # Load configuration
@@ -73,11 +73,7 @@ def commit_session(response):
     request.dbs.commit()
     return response
 
-if app.config['CREATE_SCHEMA_ON_STARTUP']:
-    print 'Creating database schema'
-    model.Base.metadata.create_all(db_engine)
-
-api = Api(app)
+api = MyApi(app)
 api.add_resource(UserAPI, '/v1/users/<user_id>', endpoint='user')
 api.add_resource(UserListAPI, '/v1/users', endpoint='users')
 api.add_resource(EntityAPI, '/v1/entities/<entity_id>', endpoint='entitie')
@@ -94,10 +90,11 @@ def login_action():
 
     # Find a matching user
     try:
-        user = request.dbs.query(model.User).join(model.Entity).filter(model.User.login == login)\
-                                                               .filter(model.User.password_hash == password_hash)\
-                                                               .filter(not_(model.Entity.deleted))\
-                                                               .filter(not_(model.User.deleted)).one()
+        user = request.dbs.query(model.User).join(model.Entity)\
+                                            .filter(model.User.login == login)\
+                                            .filter(model.User.password_hash == password_hash)\
+                                            .filter(not_(model.Entity.deleted))\
+                                            .filter(not_(model.User.deleted)).one()
     except NoResultFound:
         app.logger.warning('Try to log unsuccessfully for user login {}'.format(login))
         return {}, 404

@@ -5,7 +5,7 @@
 import logging
 
 HOST = '127.0.0.1'
-PORT = 5001
+PORT = 5002
 DEBUG = True
 
 LOG_FILE = ''
@@ -13,8 +13,7 @@ LOG_LEVEL = logging.INFO
 LOG_FORMAT = '%(asctime)s %(levelname)s - %(message)s'
 
 DATABASE_URI = ''
-
-SESSION_LIFETIME = 15*60  # in seconds
+CREATE_SCHEMA_ON_STARTUP = False
 
 INVOICING_ENDPOINT = ''
 DOCS_ENDPOINT = ''
