@@ -85,16 +85,18 @@ class InvoiceTestCase(WsTestCase):
 
         for ref_transaction in transactions:
             # POST
-            rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
-                                    data=json.dumps(ref_transaction),
-                                    headers={'Content-type': 'application/json'})
+            rv_post = self.post_json(self.invoicing_endpoint + '/v1/transactions',
+                                     ref_transaction,
+                                     self.session)
+
             self.assertJsonContentType(rv_post)
             self.assertEquals(rv_post.status_code, 201, ref_transaction)
             resp_post = rv_post.json()
             self.assertTransactionEquals(resp_post, ref_transaction)
 
             # GET
-            rv_get = requests.get(self.invoicing_endpoint + '/v1/transactions/' + resp_post['id'])
+            rv_get = requests.get(self.invoicing_endpoint + '/v1/transactions/' + resp_post['id'],
+                                  auth=(self.session.user_id, self.session.session_id))
             self.assertJsonContentType(rv_get)
             self.assertEquals(rv_get.status_code, 200)
             resp_get = rv_get.json()
@@ -115,10 +117,10 @@ class InvoiceTestCase(WsTestCase):
                         ref_transaction_loading_credit_card_other_user]
 
         for t in transactions:
-            requests.post(self.invoicing_endpoint + '/v1/transactions',
-                          data=json.dumps(t), headers={'Content-type': 'application/json'})
+            self.post_json(self.invoicing_endpoint + '/v1/transactions', t, self.session)
 
-        rv = requests.get(self.invoicing_endpoint + '/v1/transactions?user_id=d6f1ff4199954f0ea956db4709dc227a')
+        rv = requests.get(self.invoicing_endpoint + '/v1/transactions?user_id=d6f1ff4199954f0ea956db4709dc227a',
+                          auth=(self.session.user_id, self.session.session_id))
         resp = rv.json()
         self.assertEquals(len(resp['transactions']), 3)
         for t in resp['transactions']:
@@ -128,13 +130,15 @@ class InvoiceTestCase(WsTestCase):
         # Le problème c'est que les données sont pas bones pour le test.
         # On ne peut fair qu'un test qui soit les prend tous ou aucun.
         date_from_1 = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_1 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_1)
+        rv_1 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_1,
+                            auth=(self.session.user_id, self.session.session_id))
         resp_1 = rv_1.json()
         self.assertEquals(len(resp_1['transactions']), 4)
 
         # We check the transactions issued from tomorrow.
         date_from_2 = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%d')
-        rv_2 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_2)
+        rv_2 = requests.get(self.invoicing_endpoint + '/v1/transactions?from=' + date_from_2,
+                            auth=(self.session.user_id, self.session.session_id))
         resp_2 = rv_2.json()
         self.assertEquals(len(resp_2['transactions']), 0)
 
@@ -211,15 +215,11 @@ class InvoiceTestCase(WsTestCase):
                         transaction_no_amount, transaction_bad_amount]
         i = 0
         for ref_transaction in transactions:
-            print(transactions[i])
             i += 1
-            rv_post = requests.post(self.invoicing_endpoint + '/v1/transactions',
-                                    data=json.dumps(ref_transaction),
-                                    headers={'Content-type': 'application/json'})
+            rv_post = self.post_json(self.invoicing_endpoint + '/v1/transactions', ref_transaction, self.session)
 
             self.assertEquals(rv_post.status_code, 412)
             self.assertJsonContentType(rv_post)
-            print(rv_post.json())
 
     def test_balance_ok(self):
         """
@@ -233,10 +233,10 @@ class InvoiceTestCase(WsTestCase):
                   loading_t_other_user,
                   self.ref_transaction_printing_both,
                   self.ref_transaction_help_desk]:
-            requests.post(self.invoicing_endpoint + '/v1/transactions',
-                          data=json.dumps(t), headers={'Content-type': 'application/json'})
+            self.post_json(self.invoicing_endpoint + '/v1/transactions', t, self.session)
 
-        rv = requests.get(self.invoicing_endpoint + '/v1/user/d6f1ff4199954f0ea956db4709dc227a/balance')
+        rv = requests.get(self.invoicing_endpoint + '/v1/user/d6f1ff4199954f0ea956db4709dc227a/balance',
+                          auth=(self.session.user_id, self.session.session_id))
         self.assertJsonContentType(rv)
         self.assertEquals(rv.status_code, 200)
         resp = rv.json()

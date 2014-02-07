@@ -3,8 +3,8 @@ from datetime import datetime
 from flask_restful import Resource, reqparse, marshal
 from flask import abort, request
 from model import Printing, LoadingCreditCard, HelpDesk, Transaction
+from sqlalchemy.sql import func
 from ws.common.helpers import generate_uuid_for, get_or_412, ensure_allowed
-from ws.common.helpers import ensure_allowed
 
 
 class TransactionListAPI(Resource):
@@ -84,10 +84,15 @@ class TransactionListAPI(Resource):
             if amount >= 0:
                 return {'error': 'Positive amount (should be negative for a printing).'}, 412
 
-            #TODO check the user balance.
-            #TODO check the coherence between the amount and others variables.
-            t = Printing(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
+            # Check the user balance
+            balance = request.dbs.query(func.sum(Transaction.amount).label('sum'))\
+                             .filter(Transaction.user_id == user_id).scalar()
 
+            if balance < amount:
+                return {'error': 'insufficient_balance'}
+
+            # TODO check the coherence between the amount and others variables.
+            t = Printing(generate_uuid_for(request.dbs, Transaction), user_id, amount, currency, pages_color, pages_grey_level, copies)
 
         elif transaction_type == 'loading_credit_card':
             if amount <= 0:

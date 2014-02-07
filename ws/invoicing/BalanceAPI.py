@@ -18,7 +18,7 @@ class BalanceAPI(Resource):
         ensure_allowed('read', resource)
 
         balance = request.dbs.query(func.sum(Transaction.amount).label('sum'))\
-            .filter(Transaction.user_id == user_id).scalar()
+                             .filter(Transaction.user_id == user_id).scalar()
 
         return {
             'user_id': user_id,
