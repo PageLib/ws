@@ -3,10 +3,10 @@
 from datetime import datetime
 from sqlalchemy import Column, CHAR, String, DateTime, ForeignKey, Float, Integer
 from sqlalchemy.ext.declarative import declarative_base
-from uuid import uuid4
 import fields
 
 Base = declarative_base()
+
 
 class Transaction(Base):
     """
