@@ -16,10 +16,6 @@ class IamTestCase(WsTestCase):
         'entity_id': 'bab2ab808f1a11e3baa80800200c9a66'
     }
 
-    def assertJsonAndStatus(self, rv, status):
-        self.assertEquals(rv.headers['Content-type'], 'application/json')
-        self.assertEquals(status, rv.status_code)
-
     def test_create_user_twice(self):
         """Try to create the same user twice, the first works and we assert failure on the second trial."""
         rv_post = self.post_json(self.iam_endpoint + '/v1/users',

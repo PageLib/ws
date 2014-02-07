@@ -32,9 +32,6 @@ class InvoiceTestCase(WsTestCase):
         'transaction_type': 'help_desk'
     }
 
-    def assertJsonContentType(self, rv):
-        self.assertEquals('application/json', rv.headers['Content-type'], rv)
-
     def assertTransactionEquals(self, t1, t2):
         """
         Check if t1 and t2 are equal.
@@ -89,16 +86,14 @@ class InvoiceTestCase(WsTestCase):
                                      ref_transaction,
                                      self.session)
 
-            self.assertJsonContentType(rv_post)
-            self.assertEquals(rv_post.status_code, 201, ref_transaction)
+            self.assertJsonAndStatus(rv_post, 201, ref_transaction)
             resp_post = rv_post.json()
             self.assertTransactionEquals(resp_post, ref_transaction)
 
             # GET
             rv_get = requests.get(self.invoicing_endpoint + '/v1/transactions/' + resp_post['id'],
                                   auth=(self.session.user_id, self.session.session_id))
-            self.assertJsonContentType(rv_get)
-            self.assertEquals(rv_get.status_code, 200)
+            self.assertJsonAndStatus(rv_get, 200, ref_transaction)
             resp_get = rv_get.json()
             self.assertTransactionEquals(resp_post, resp_get)
 
@@ -218,8 +213,7 @@ class InvoiceTestCase(WsTestCase):
             i += 1
             rv_post = self.post_json(self.invoicing_endpoint + '/v1/transactions', ref_transaction, self.session)
 
-            self.assertEquals(rv_post.status_code, 412)
-            self.assertJsonContentType(rv_post)
+            self.assertJsonAndStatus(rv_post, 412, ref_transaction)
 
     def test_balance_ok(self):
         """
@@ -237,8 +231,7 @@ class InvoiceTestCase(WsTestCase):
 
         rv = requests.get(self.invoicing_endpoint + '/v1/user/d6f1ff4199954f0ea956db4709dc227a/balance',
                           auth=(self.session.user_id, self.session.session_id))
-        self.assertJsonContentType(rv)
-        self.assertEquals(rv.status_code, 200)
+        self.assertJsonAndStatus(rv, 200)
         resp = rv.json()
         self.assertEquals('d6f1ff4199954f0ea956db4709dc227a', resp['user_id'])
         self.assertEquals(7.00, resp['balance'])

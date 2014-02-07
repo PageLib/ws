@@ -66,6 +66,13 @@ class WsTestCase(unittest.TestCase):
         os.remove(config_iam.DATABASE_URI[len('sqlite:///'):])
         os.remove(config_invoicing.SQLALCHEMY_DATABASE_URI[len('sqlite:///'):])
 
+    def assertJsonAndStatus(self, rv, status, message=None):
+        if message is not None:
+            self.assertEquals(status, rv.status_code, message)
+            self.assertEquals(rv.headers['Content-type'], 'application/json', message)
+        self.assertEquals(status, rv.status_code)
+        self.assertEquals(rv.headers['Content-type'], 'application/json')
+
     def post_json(self, url, data, session=None, **kwargs):
         headers = {'Content-type': 'application/json'}
         if 'headers' in kwargs:
