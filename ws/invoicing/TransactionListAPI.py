@@ -58,7 +58,7 @@ class TransactionListAPI(Resource):
         currency = get_or_412(args, 'currency')
         user_id = get_or_412(args, 'user_id')
 
-        resource = 'transaction' if request.ws_session.user_id == user_id else 'own_transaction'
+        resource = 'own_transaction' if request.ws_session.user_id == user_id else 'transaction'
         ensure_allowed('create', resource)
 
         if len(user_id) != 32:
