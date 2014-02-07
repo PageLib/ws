@@ -12,5 +12,14 @@ class Document(Base):
     __tablename__ = 'document'
 
     id = Column(CHAR(32), primary_key=True)
+    name = Column(String(50))
     user_id = Column(CHAR(32), nullable=False)
-    date_time = Column(DateTime(), default='')
+    date_time = Column(DateTime(), default='')  # when the file was uploaded
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user_id': self.user_id,
+            'date_time': self.date_time
+        }

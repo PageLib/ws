@@ -13,8 +13,9 @@ LOG_LEVEL = logging.INFO
 LOG_FORMAT = '%(asctime)s %(levelname)s - %(message)s'
 
 DATABASE_URI = ''
+DOCS_URI = ''
 CREATE_SCHEMA_ON_STARTUP = False
 
 INVOICING_ENDPOINT = ''
-DOCS_ENDPOINT = ''
+IAM_ENDPOINT = ''
 SETTINGS_ENDPOINT = ''

@@ -41,9 +41,9 @@ if app.config['CREATE_SCHEMA_ON_STARTUP']:
 
 # Set up WSC configuration
 wsc_config = Configuration()
-wsc_config.iam_endpoint = 'http://{}:{}'.format(app.config['HOST'], app.config['PORT'])
+wsc_config.docs_endpoint = 'http://{}:{}'.format(app.config['HOST'], app.config['PORT'])
 wsc_config.invoicing_endpoint =app.config['INVOICING_ENDPOINT']
-wsc_config.docs_endpoint = app.config['DOCS_ENDPOINT']
+wsc_config.iam_endpoint = app.config['INVOICING_ENDPOINT']
 wsc_config.settings_endpoint = app.config['SETTINGS_ENDPOINT']
 
 @app.before_request
@@ -67,8 +67,8 @@ def commit_session(response):
 
 # Set up RESTful API resources
 api = MyApi(app)
-api.add_resource(DocumentListAPI, '/v1/docs', endpoint='documents')
-api.add_resource(DocumentAPI, '/v1/docs/<string:id>', endpoint='document')
+api.add_resource(DocumentListAPI, '/v1/docs', endpoint='docs')
+api.add_resource(DocumentAPI, '/v1/docs/<string:id>', endpoint='doc')
 
 if __name__ == '__main__':
     app.logger.info('Starting service')
