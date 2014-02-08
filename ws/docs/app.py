@@ -3,17 +3,20 @@
 import os
 import sys
 import logging
-from flask import Flask, request
+from flask import Flask, request, send_file, abort
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from ws.common.MyAPI import MyApi
 from wsc.iam import IAM, Session
 from wsc.Configuration import Configuration
-from DocumentAPI import DocumentAPI
-from DocumentListAPI import DocumentListAPI
 import model
 
 app = Flask(__name__)
+
+from DocumentAPI import DocumentAPI
+from DocumentListAPI import DocumentListAPI
+from DocumentRawAPI import DocumentRawAPI
 
 # Load configuration
 config_path = os.environ.get('PAGELIB_WS_DOCS_CONFIG',
@@ -69,6 +72,28 @@ def commit_session(response):
 api = MyApi(app)
 api.add_resource(DocumentListAPI, '/v1/docs', endpoint='docs')
 api.add_resource(DocumentAPI, '/v1/docs/<string:id>', endpoint='doc')
+api.add_resource(DocumentRawAPI, '/v1/docs/<string:doc_id>/raw', endpoint='doc_raw')
+
+@app.route('/v1/docs/<string:doc_id>/raw', methods=['GET'])
+def get_doc_raw(doc_id):
+    try:
+        doc = request.dbs.query(model.Document).filter(model.Document.id == doc_id).one()
+        path = app.config['DOCS_URI'] + doc.id + '.pdf'
+        doc_name = doc.name + '.pdf'
+        if os.access(path, os.R_OK):
+            with app.open_resource(path) as fp:
+                return send_file(fp, attachment_filename=doc_name, mimetype='application/pdf', as_attachment=True)
+
+    except NoResultFound:
+        app.logger.warning('Request on non existing document ' + doc_id)
+        abort(404)
+    except IOError:
+        app.logger.warning('Request on non existing raw document ' + doc_id)
+        abort(404)
+    except MultipleResultsFound:
+        app.logger.error('Multiple results found for document ' + doc_id)
+        abort(500)
+
 
 if __name__ == '__main__':
     app.logger.info('Starting service')
