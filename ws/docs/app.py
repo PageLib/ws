@@ -3,7 +3,7 @@
 import os
 import sys
 import logging
-from flask import Flask, request, send_file, abort
+from flask import Flask, request, abort, send_from_directory
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
@@ -78,11 +78,10 @@ api.add_resource(DocumentRawAPI, '/v1/docs/<string:doc_id>/raw', endpoint='doc_r
 def get_doc_raw(doc_id):
     try:
         doc = request.dbs.query(model.Document).filter(model.Document.id == doc_id).one()
-        path = app.config['DOCS_URI'] + doc.id + '.pdf'
+        path = app.config['DOCS_URI']
         doc_name = doc.name + '.pdf'
         if os.access(path, os.R_OK):
-            with app.open_resource(path) as fp:
-                return send_file(fp, attachment_filename=doc_name, mimetype='application/pdf', as_attachment=True)
+            return send_from_directory(path, doc_id + '.pdf', attachment_filename=doc_name, as_attachment=True)
 
     except NoResultFound:
         app.logger.warning('Request on non existing document ' + doc_id)

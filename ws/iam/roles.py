@@ -4,7 +4,7 @@ from rbac.acl import Registry
 
 acl = Registry()
 
-roles = ['admin', 'user', 'manager']
+roles = ['admin', 'user']
 
 for role in roles:
     acl.add_role(role)
@@ -30,6 +30,12 @@ for t in ['transaction', 'own_transaction']:
 acl.allow('user', 'read', 'own_transaction')
 acl.allow('user', 'create', 'own_transaction')
 
+# Entity
+acl.add_resource('entity')
+acl.allow('admin', 'create', 'entity')
+acl.allow('admin', 'read', 'entity')
+acl.allow('admin', 'update', 'entity')
+acl.allow('admin', 'delete', 'entity')
 
 # Documents resources
 # ...
