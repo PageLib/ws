@@ -10,7 +10,17 @@ from ws.common.helpers import generate_uuid_for
 class DocumentListAPI(Resource):
 
     def get(self):
-        pass
+        parser = reqparse.RequestParser()
+        parser.add_argument('user_id', type=str, location='values')
+
+
+        # Optional filters
+        args = parser.parse_args()
+        query = request.dbs.query(model.Document)
+        if args.get('user_id', None):
+            query = query.filter(model.Document.user_id == args['user_id'])
+
+        return {'documents': map(lambda d: marshal(d.to_dict(), doc_fields), query.all())}
 
     def post(self):
         parser = reqparse.RequestParser()
