@@ -38,10 +38,6 @@ app.logger.addHandler(log_handler)
 db_engine = create_engine(app.config['DATABASE_URI'])
 DBSession = sessionmaker(db_engine)
 
-if app.config['CREATE_SCHEMA_ON_STARTUP']:
-    app.logger.info('Creating database schema')
-    model.Base.metadata.create_all(db_engine)
-
 # Set up WSC configuration
 wsc_config = Configuration()
 wsc_config.docs_endpoint = 'http://{}:{}'.format(app.config['HOST'], app.config['PORT'])
@@ -78,7 +74,7 @@ api.add_resource(DocumentRawAPI, '/v1/docs/<string:doc_id>/raw', endpoint='doc_r
 def get_doc_raw(doc_id):
     try:
         doc = request.dbs.query(model.Document).filter(model.Document.id == doc_id).one()
-        path = app.config['DOCS_URI']
+        path = app.config['DOCS_URI'] + '/'
         doc_name = doc.name + '.pdf'
         if os.access(path, os.R_OK):
             return send_from_directory(path, doc_id + '.pdf', attachment_filename=doc_name, as_attachment=True)

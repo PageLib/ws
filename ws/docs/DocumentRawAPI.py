@@ -20,7 +20,7 @@ class DocumentRawAPI(Resource):
         try:
             request.dbs.query(model.Document).filter(model.Document.id == doc_id).one()
             doc = args['doc']
-            doc.save(app.config['DOCS_URI'] + doc_id + '.pdf')
+            doc.save(app.config['DOCS_URI'] + '/' + doc_id + '.pdf')
 
             return {'success': 'Doc uploaded'}, 201
         except NoResultFound:

@@ -14,7 +14,8 @@ class DocumentListAPI(Resource):
 
     def post(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('name', type=str, location='json')
+        parser.add_argument('name', type=str, location='json', required=True,
+                            help='name required')
         parser.add_argument('user_id', type=str, location='json', required=True,
                             help='user_id required')
 
