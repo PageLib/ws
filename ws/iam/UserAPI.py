@@ -6,7 +6,7 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from fields import user_fields
 from roles import roles
 from sqlalchemy import not_
-from ws.common.helpers import ensure_allowed
+from ws.iam.internal_helpers import ensure_allowed
 
 
 class UserAPI(Resource):

@@ -183,7 +183,11 @@ def session_info_action(session_id, user_id):
 
 @app.route('/v1/sessions/<user_id>/<session_id>/permission/<action>/<resource>', methods=['GET'])
 @json_response
-def check_permission_action(session_id, action, resource, user_id):
+def check_permission_action_(session_id, action, resource, user_id):
+    return check_permission_action_internal(session_id, action, resource, user_id)
+
+
+def check_permission_action_internal(session_id, action, resource, user_id):
     try:
         session = request.dbs.query(model.Session).join(model.User)\
                                                   .join(model.Entity)\
