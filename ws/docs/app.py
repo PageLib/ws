@@ -67,8 +67,8 @@ def commit_session(response):
 # Set up RESTful API resources
 api = MyApi(app)
 api.add_resource(DocumentListAPI, '/v1/docs', endpoint='docs')
-api.add_resource(DocumentAPI, '/v1/docs/<string:id>', endpoint='doc')
-api.add_resource(DocumentRawAPI, '/v1/docs/<string:doc_id>/raw', endpoint='doc_raw')
+api.add_resource(DocumentAPI, '/v1/docs/<string:document_id>', endpoint='doc')
+api.add_resource(DocumentRawAPI, '/v1/docs/<string:document_id>/raw', endpoint='doc_raw')
 
 @app.route('/v1/docs/<string:doc_id>/raw', methods=['GET'])
 def get_doc_raw(doc_id):

@@ -16,6 +16,8 @@ class Document(Base):
     user_id = Column(CHAR(32), nullable=False)
     date_time = Column(DateTime(), default='')  # when the file was uploaded
 
+    # TODO delete documents where there is only the metadata
+
     def to_dict(self):
         return {
             'id': self.id,

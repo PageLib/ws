@@ -13,7 +13,7 @@ class DocumentRawAPI(Resource):
                                    help='Doc required')
         super(DocumentRawAPI, self).__init__()
 
-    def post(self, doc_id):
+    def post(self, document_id):
         args = self.reqparse.parse_args()
 
         # Check if the doc exists
