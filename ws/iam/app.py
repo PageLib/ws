@@ -18,6 +18,43 @@ from sqlalchemy import not_
 
 app = Flask(__name__)
 
+
+def check_permission_action_internal(session_id, action, resource, user_id):
+    try:
+        session = request.dbs.query(model.Session).join(model.User)\
+                                                  .join(model.Entity)\
+                                                  .filter(not_(model.User.deleted))\
+                                                  .filter(not_(model.Entity.deleted))\
+                                                  .filter(model.Session.id == session_id)\
+                                                  .filter(model.Session.user_id == user_id).one()
+
+        # Check that the session is still active
+        if not session.is_active:
+            app.logger.info('Session {} expired, unable to check permission'.format(session_id))
+            return {'error': 'session_expired'}, 404
+
+        # Refresh the session
+        session.refreshed = datetime.datetime.now()
+
+        # Check permission
+        allowed = bool(acl.is_allowed(session.role, action, resource))
+        app.logger.info('Permission {} for action {} on {} for user {} in session {}'.format(
+            'granted' if allowed else 'denied', action, resource, user_id, session_id))
+        return {'allowed': allowed}, 200
+
+    except NoResultFound:
+        app.logger.warning('No result found for user {} and session {}'.format(user_id, session_id))
+        return {'error': 'invalid_session'}, 404
+
+    except MultipleResultsFound:
+        app.logger.error('Multiple results found for user {} and session {}'.format(user_id, session_id))
+        return '', 500
+
+    except AssertionError:
+        app.logger.error('Request on non existing resource: {}'.format(resource))
+        return {'error': 'invalid_resource'}, 404
+
+
 from UserAPI import UserAPI
 from UserListAPI import UserListAPI
 from EntityListAPI import EntityListAPI
@@ -185,42 +222,6 @@ def session_info_action(session_id, user_id):
 @json_response
 def check_permission_action_(session_id, action, resource, user_id):
     return check_permission_action_internal(session_id, action, resource, user_id)
-
-
-def check_permission_action_internal(session_id, action, resource, user_id):
-    try:
-        session = request.dbs.query(model.Session).join(model.User)\
-                                                  .join(model.Entity)\
-                                                  .filter(not_(model.User.deleted))\
-                                                  .filter(not_(model.Entity.deleted))\
-                                                  .filter(model.Session.id == session_id)\
-                                                  .filter(model.Session.user_id == user_id).one()
-
-        # Check that the session is still active
-        if not session.is_active:
-            app.logger.info('Session {} expired, unable to check permission'.format(session_id))
-            return {'error': 'session_expired'}, 404
-
-        # Refresh the session
-        session.refreshed = datetime.datetime.now()
-
-        # Check permission
-        allowed = bool(acl.is_allowed(session.role, action, resource))
-        app.logger.info('Permission {} for action {} on {} for user {} in session {}'.format(
-            'granted' if allowed else 'denied', action, resource, user_id, session_id))
-        return {'allowed': allowed}, 200
-
-    except NoResultFound:
-        app.logger.warning('No result found for user {} and session {}'.format(user_id, session_id))
-        return {'error': 'invalid_session'}, 404
-
-    except MultipleResultsFound:
-        app.logger.error('Multiple results found for user {} and session {}'.format(user_id, session_id))
-        return '', 500
-
-    except AssertionError:
-        app.logger.error('Request on non existing resource: {}'.format(resource))
-        return {'error': 'invalid_resource'}, 404
 
 
 @app.route('/v1/sessions/expired', methods=['DELETE'])
