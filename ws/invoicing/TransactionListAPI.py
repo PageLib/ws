@@ -88,7 +88,7 @@ class TransactionListAPI(Resource):
             balance = request.dbs.query(func.sum(Transaction.amount).label('sum'))\
                              .filter(Transaction.user_id == user_id).scalar()
 
-            if balance < amount:
+            if balance < -amount:
                 return {'error': 'insufficient_balance'}
 
             # TODO check the coherence between the amount and others variables.
