@@ -18,16 +18,16 @@ class DocumentRawAPI(Resource):
 
         # Check if the doc exists
         try:
-            request.dbs.query(model.Document).filter(model.Document.id == doc_id).one()
+            request.dbs.query(model.Document).filter(model.Document.id == document_id).one()
             doc = args['doc']
-            doc.save(app.config['DOCS_URI'] + '/' + doc_id + '.pdf')
+            doc.save(app.config['DOCS_URI'] + '/' + document_id + '.pdf')
 
             return {'success': 'Doc uploaded'}, 201
         except NoResultFound:
-            app.logger.warning('Request on non existing document ' + doc_id)
+            app.logger.warning('Request on non existing document ' + document_id)
             return {}, 404
         except MultipleResultsFound:
-            app.logger.error('Multiple results found for document ' + doc_id)
+            app.logger.error('Multiple results found for document ' + document_id)
             return {}, 500
 
 
